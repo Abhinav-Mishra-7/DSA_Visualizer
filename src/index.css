@@ -1,0 +1,246 @@
+/* src/index.css */
+@import "tailwindcss";
+
+/* --- THEME DEFINITIONS (Your code) --- */
+:root {
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --background: #f3f3f3;
+  --card: #fbfbfb;
+  --text-primary: #212529;
+  --text-secondary: #818991;
+  --border: #bababa;
+  --accent: #007BFF;
+  --accent-foreground: #FFFFFF;
+  --accent-glow: 0 0 15px transparent;
+  --accent-gradient-from: #598dfc; 
+  --accent-gradient-to: #2459ea;  
+
+  /* --- REFINED Liquid Glass Button Variables (Light Theme) --- */
+  --glass-liquid-bg: rgb(240 240 245 / 0.7);    /* A more solid base for visibility */
+  --glass-liquid-highlight: rgb(255 255 255 / 0.9); /* The bright leading edge of the sheen */
+  --glass-liquid-trail: rgb(210 215 220 / 0.5);   /* The darker trailing edge for contrast */
+  --glass-liquid-border-light: rgb(255 255 255 / 1);
+  --glass-liquid-border-dark: rgb(160 160 165 / 0.8); /* Darker border for better definition */
+  --glass-liquid-shadow: rgb(9 9 11 / 0.08);
+  --glass-liquid-text: #27272a; /* Slightly darker text for accessibility */
+
+  --glass-liquid-shadow: rgba(80, 80, 100, 0.25);
+  --glass-liquid-highlight: hsl(220, 25%, 95%);
+  --glass-liquid-border-light: hsl(220, 15%, 98%); 
+  --glass-liquid-border-dark: hsl(220, 10%, 65%);
+  --glass-liquid-trail: hsl(220, 15%, 80%);
+  --glass-liquid-bg: hsl(220, 12%, 88%);
+  --glass-liquid-text: #27272a;
+
+  --accent-highlight: #a8c7ff;
+  --accent-deep-sky: #1a4da1;
+}
+
+html.dark {
+  --background: #141414;
+  --card: #252525;
+  --text-primary: #E9ECEF;
+  --text-secondary: #ADB5BD;
+  --border: #454a4f;
+  --accent: #3399FF;
+  --accent-foreground: #121212;
+  --accent-glow: 0 0 15px transparent;
+
+  /* --- REFINED Liquid Glass Button Variables (Dark Theme) --- */
+  --glass-liquid-bg: rgb(40 40 42 / 0.6);
+  --glass-liquid-highlight: rgb(255 255 255 / 0.2);
+  --glass-liquid-trail: rgb(255 255 255 / 0.05); /* A very subtle trail in dark mode */
+  --glass-liquid-border-light: rgb(255 255 255 / 0.2);
+  --glass-liquid-border-dark: rgb(0 0 0 / 0.2);
+  --glass-liquid-text: #d4d4d8;
+
+
+  --glass-liquid-shadow: rgba(168, 168, 168, 0.25);
+  --glass-liquid-highlight: rgba(180, 190, 230, 0.7); /* The GLOW color */
+  --glass-liquid-border-light: rgba(220, 225, 255, 0.6);
+  --glass-liquid-border-dark: rgba(40, 40, 60, 0.8);
+  --glass-liquid-trail: rgba(100, 105, 140, 0.6);
+  --glass-liquid-bg: rgba(60, 65, 90, 0.5);
+  --glass-liquid-text: #d4d4d8;
+
+  --accent-gradient-from: #80bfff;
+  --accent-gradient-to: #007bff;
+  --accent-highlight: #cde4ff;
+  --accent-deep-sky: #4f68b3;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --font-family-sans: var(--font-sans);
+  --color-accent-gradient-from: var(--accent-gradient-from);
+  --color-accent-gradient-to: var(--accent-gradient-to);
+
+  /* Mapping for glass effect */
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-glass-text: var(--glass-text);
+  --color-glass-hover-bg: var(--glass-hover-bg);
+  --shadow-color-glass: var(--glass-shadow);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @apply bg-background text-text-primary transition-colors duration-300;
+}
+
+html.neon body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image:
+    linear-gradient(to right, oklch(25% 0.02 260 / 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(25% 0.02 260 / 0.5) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+@keyframes liquid-sheen {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes nebula-drift {
+  0% {
+    background-position: 0% 50%, 50% 50%, 100% 50%;
+  }
+  25% {
+    background-position: 50% 0%, 80% 40%, 20% 100%;
+  }
+  50% {
+    background-position: 100% 50%, 50% 50%, 0% 50%;
+  }
+  75% {
+    background-position: 50% 100%, 20% 60%, 80% 0%;
+  }
+  100% {
+    background-position: 0% 50%, 50% 50%, 100% 50%;
+  }
+}
+
+@layer utilities {
+  .text-nebula {
+    @apply bg-clip-text text-transparent;
+    background-image:
+      /* A soft highlight */
+      radial-gradient(ellipse at 20% 20%, var(--accent), transparent 40%),
+      /* The main, deep color */
+      radial-gradient(ellipse at 80% 70%, var(--accent-deep-sky), transparent 50%),
+      /* A secondary theme color */
+      radial-gradient(ellipse at 50% 50%, var(--accent-gradient-from), transparent 45%);
+    background-size: 300% 300%; /* Large size for slow, subtle movement */
+    animation: nebula-drift 18s ease-in-out infinite;
+  }
+  .btn-liquid-glass {
+    @apply relative overflow-hidden rounded-full font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-md;
+    color: var(--glass-liquid-text);
+    background-color: var(--glass-liquid-bg);
+    box-shadow: 0 8px 32px var(--glass-liquid-shadow);
+    
+    background-image: linear-gradient(
+      90deg, 
+      transparent 40%, 
+      var(--glass-liquid-highlight) 48%,
+      var(--glass-liquid-trail) 52%,
+      transparent 60%
+    );
+    background-size: 300% 100%;
+    animation: liquid-sheen 8s linear infinite;
+  }
+
+  /* The pseudo-element for the border. Now includes a transition for the background. */
+  .btn-liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px; /* Border thickness */
+    background: conic-gradient( /* Default neutral border */
+      from 90deg at 50% 50%,
+      var(--glass-liquid-border-dark),
+      var(--glass-liquid-border-light) 25%,
+      var(--glass-liquid-border-light) 75%,
+      var(--glass-liquid-border-dark) 100%
+    );
+    transition: background 0.4s ease-out; /* Smooth transition for the color change */
+    
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: subtract;
+  }
+
+  /* --- NEW HOVER STATE STYLES --- */
+  .btn-liquid-glass:hover:not(:disabled) {
+    @apply -translate-y-px;
+    box-shadow: 0 12px 36px var(--glass-liquid-shadow);
+    transform: scale(1.02);
+    animation: none; 
+    
+  }
+  
+  /* REQUIREMENT: Change the border pseudo-element's gradient on hover */
+  .btn-liquid-glass:hover:not(:disabled)::before {
+    background: conic-gradient(
+      from 90deg at 50% 50%,
+      var(--glass-liquid-border-dark),   /* Dark blue on the sides */
+      var(--glass-liquid-border-light) 25%, /* Light blue on top/bottom */
+      var(--glass-liquid-border-light) 75%,
+      var(--glass-liquid-border-dark) 100%
+    );
+  }
+}
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

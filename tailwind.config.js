@@ -1,0 +1,13 @@
+import tailwindcss from 'tailwindcss'
+
+export default {
+  darkMode: 'class',
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  presets: [
+    tailwindcss,
+  ],
+  plugins: [],
+}
