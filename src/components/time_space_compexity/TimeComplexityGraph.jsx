@@ -117,7 +117,7 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
                 {title}
             </h3>
             
-            <div className="flex scrollbar-hide">
+            <div className="flex overflow-auto scrollbar-hide p-3">
                 <div className="flex min-w-full">
                     {/* Y-Axis */}
                     <div 
@@ -132,7 +132,7 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
                         <span 
                             className={`absolute top-1/2 -translate-y-1/2 -rotate-90 ${axisLabelSize} tracking-wider whitespace-nowrap`}
                             style={{ 
-                                left: dimensions.padding < 20 ? '-45px' : '-55px'
+                                left: dimensions.padding < 20 ? '-40px' : '-55px'
                             }}
                         >
                             Operations
