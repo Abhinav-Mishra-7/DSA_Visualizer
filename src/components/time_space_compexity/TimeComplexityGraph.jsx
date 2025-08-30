@@ -112,12 +112,12 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
     const axisLabelSize = dimensions.fontSize > 12 ? 'text-sm sm:text-base' : 'text-xs sm:text-sm';
 
     return (
-        <div className={`mt-4 sm:mt-6 md:mt-8 bg-card/50 ${containerPadding} sm:p-6 md:p-8 lg:p-10 rounded-lg sm:rounded-xl border border-border select-none`}>
+        <div className={`mt-4 sm:mt-6 md:mt-8 bg-card/50 ${containerPadding} sm:p-6 md:p-8 lg:p-10 rounded-lg sm:rounded-xl border border-border select-none scrollbar-hide`}>
             <h3 className={`font-bold text-text-primary text-center mb-3 sm:mb-4 md:mb-6 ${titleSize} tracking-wide`}>
                 {title}
             </h3>
             
-            <div className="flex overflow-x-auto">
+            <div className="flex scrollbar-hide">
                 <div className="flex min-w-full">
                     {/* Y-Axis */}
                     <div 
@@ -132,7 +132,7 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
                         <span 
                             className={`absolute top-1/2 -translate-y-1/2 -rotate-90 ${axisLabelSize} tracking-wider whitespace-nowrap`}
                             style={{ 
-                                left: dimensions.padding < 20 ? '-35px' : '-45px'
+                                left: dimensions.padding < 20 ? '-45px' : '-55px'
                             }}
                         >
                             Operations
