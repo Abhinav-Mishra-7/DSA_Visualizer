@@ -165,7 +165,7 @@ export default function VisualizerLayout() {
 
                                     {/* Visualizer Tab Content */}
                                     {activeTab === 'visualizer' && (
-                                        <div className="flex-col flex-grow lg:flex-row p-4 gap-4 overflow-auto">
+                                        <div className="flex-col flex-grow lg:flex-row p-4 gap-4 overflow-hidden">
                                             <div className="flex-grow flex flex-col lg:flex-row py-4 gap-4 overflow-auto">
                                                 <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
@@ -174,9 +174,9 @@ export default function VisualizerLayout() {
                                                     {ControlsComponent && <ControlsComponent {...allControlProps} />}
                                                 </div>
                                             </div>
-                                            <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl flex flex-col overflow-hidden">
+                                            <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl flex flex-col overflow-hidden scrollbar-hide">
                                                 <h3 className="p-3 font-bold border-b border-border text-text-primary flex-shrink-0">Detailed Steps</h3>
-                                                <div className="flex-grow p-3 overflow-y-auto">
+                                                <div className="flex-grow p-3 overflow-y-auto scrollbar-hide">
                                                     {steps && <StepLog steps={steps} currentStep={currentStep} onStepChange={allControlProps.onStepChange} />}
                                                 </div>
                                             </div>
