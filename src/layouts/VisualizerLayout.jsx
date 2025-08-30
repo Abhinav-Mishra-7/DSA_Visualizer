@@ -166,7 +166,7 @@ export default function VisualizerLayout() {
                                     {/* Visualizer Tab Content */}
                                     {activeTab === 'visualizer' && (
                                         <div className="flex-col flex-grow lg:flex-row p-4 gap-4 overflow-hidden">
-                                            <div className="flex-grow flex flex-col lg:flex-row py-4 gap-4 overflow-auto">
+                                            <div className="flex-grow flex flex-col lg:flex-row py-6 gap-4 overflow-auto scrollbar-hide">
                                                 <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
                                                 </div>
