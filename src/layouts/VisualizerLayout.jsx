@@ -165,12 +165,20 @@ export default function VisualizerLayout() {
 
                                     {/* Visualizer Tab Content */}
                                     {activeTab === 'visualizer' && (
-                                        <div className="flex-grow flex flex-col lg:flex-row p-4 gap-4 overflow-auto">
-                                            <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
+                                        <div className="flex-col flex-grow lg:flex-row p-4 gap-4 overflow-auto">
+                                            <div className="flex-grow flex flex-col lg:flex-row py-4 gap-4 overflow-auto">
+                                                <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
+                                                </div>
+                                                <div className="w-full lg:w-[350px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
+                                                    {ControlsComponent && <ControlsComponent {...allControlProps} />}
+                                                </div>
                                             </div>
-                                            <div className="w-full lg:w-[350px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
-                                                {ControlsComponent && <ControlsComponent {...allControlProps} />}
+                                            <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl flex flex-col overflow-hidden">
+                                                <h3 className="p-3 font-bold border-b border-border text-text-primary flex-shrink-0">Detailed Steps</h3>
+                                                <div className="flex-grow p-3 overflow-y-auto">
+                                                    {steps && <StepLog steps={steps} currentStep={currentStep} onStepChange={allControlProps.onStepChange} />}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -184,12 +192,7 @@ export default function VisualizerLayout() {
                                 </div>
 
                                 {/* --- STEP LOG (ALWAYS VISIBLE) --- */}
-                                <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl shadow-lg flex flex-col overflow-hidden">
-                                    <h3 className="p-3 font-bold border-b border-border text-text-primary flex-shrink-0">Detailed Steps</h3>
-                                    <div className="flex-grow p-3 overflow-y-auto">
-                                        {steps && <StepLog steps={steps} currentStep={currentStep} onStepChange={allControlProps.onStepChange} />}
-                                    </div>
-                                </div>
+                               
                             </div>
                         );
                     }}

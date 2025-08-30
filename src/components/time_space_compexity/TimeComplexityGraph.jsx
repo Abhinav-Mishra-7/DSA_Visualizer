@@ -287,9 +287,6 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
 
 export default TimeComplexityGraph;
 
-
-
-
 // import { useState, useRef, useMemo } from 'react';
 
 // const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity Analysis" }) => {
