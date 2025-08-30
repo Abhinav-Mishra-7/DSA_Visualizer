@@ -58,7 +58,7 @@ const QuickSortVisualizer = () => {
     const pivot = [4];
 
     return (
-        <div className="mt-8 p-4 sm:p-6 bg-card/50 border border-border rounded-xl space-y-12">
+        <div className="mt-8 md:p-3 lg:p-6 p-2 bg-card/50 border border-border rounded-xl space-y-12">
             <div>
                 <p className="mb-4 text-text-secondary"><strong className="text-text-primary">Initial Array:</strong> Our goal is to sort this list. Quick Sort starts by choosing one element to be the "pivot". Let's pick the last element, <b className="text-purple-500">{pivot}</b>, as our pivot.</p>
                 <div className="flex justify-center">
@@ -203,7 +203,7 @@ const QuickSortVisualizer = () => {
 
 export default function QuickSortExplanation() {
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-12 animate-fade-in-up">
+        <div className="max-w-5xl mx-auto md:p-3 lg:p-6 p-1 space-y-12 animate-fade-in-up">
             
             <section>
                 <SectionHeader title="What is Quick Sort?" icon={<BrainCircuit size={28} />} />
@@ -224,7 +224,7 @@ export default function QuickSortExplanation() {
 
             <section>
                 <SectionHeader title="Algorithm Steps" icon={<ListChecks size={28} />} />
-                <div className="mt-6 bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className="mt-6 bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <ol className="list-decimal list-outside pl-6 space-y-6 text-text-secondary ">
                         <li>
                             <strong> Pick a Pivot : </strong>
@@ -257,7 +257,7 @@ export default function QuickSortExplanation() {
             <section>
                 <SectionHeader title="Complexity Analysis" icon={<Zap size={28} />} />
                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-text-secondary text-base">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Clock size={22}/> Time Complexity</h3>
                         <p>Performance depends heavily on picking good pivots.</p>
                         <ul className="list-none space-y-2 pt-2">
@@ -266,7 +266,7 @@ export default function QuickSortExplanation() {
                             <li><strong className="text-red-500">Worst Case: O(n²)</strong> (When the pivot is always the smallest or largest element, creating very unbalanced splits, e.g., on an already sorted array).</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Shuffle size={22}/> Space Complexity</h3>
                         <p>Measures extra memory for the function call stack.</p>
                          <div className="pt-2">
@@ -283,14 +283,14 @@ export default function QuickSortExplanation() {
             <section>
                 <SectionHeader title="Pros & Cons" icon={<Scale size={28} />} />
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-green-500 flex items-center gap-3 mb-4"><CheckCircle /> Pros</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Extremely Fast in Practice:</span> On average, it's one of the fastest sorting algorithms due to its low overhead and efficient use of computer memory (cache-friendly).</li>
                             <li><span className="font-semibold text-text-primary">Memory Efficient (In-Place):</span> It sorts the array without needing to create a full copy, requiring only a small O(log n) amount of extra space for managing recursion.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-red-500 flex items-center gap-3 mb-4"><XCircle /> Cons</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Worst-Case is Terrible:</span> If you get unlucky with pivots (like on an already sorted list), performance can degrade to O(n²), which is very slow for large datasets.</li>

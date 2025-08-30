@@ -50,7 +50,7 @@ const Bucket = ({ digit, numbers = [], isHighlighted }) => (
 
 const RadixSortVisualizer = () => {
     return (
-        <div className="mt-8 p-4 sm:p-6 bg-card/50 border border-border rounded-xl space-y-12">
+        <div className="mt-8 md:p-3 lg:p-6 p-2 bg-card/50 border border-border rounded-xl space-y-12">
             
             <div>
                 <p className="mb-4 text-text-secondary"><strong className="text-text-primary">Initial Array:</strong> We start with an unsorted list of integers.</p>
@@ -141,7 +141,7 @@ const RadixSortVisualizer = () => {
 
 export default function RadixSortExplanation() {
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-12 animate-fade-in-up">
+        <div className="max-w-5xl mx-auto md:p-3 lg:p-6 p-1 space-y-12 animate-fade-in-up">
             
             <section>
                 <SectionHeader title="What is Radix Sort?" icon={<BrainCircuit size={28} />} />
@@ -161,7 +161,7 @@ export default function RadixSortExplanation() {
 
             <section>
                 <SectionHeader title="Algorithm Steps" icon={<ListChecks size={28} />} />
-                <div className="mt-6 bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className="mt-6 bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <ol className="list-decimal list-outside pl-6 space-y-6 text-text-secondary">
                         <li>
                             <strong>Find the Maximum Value:</strong>
@@ -193,7 +193,7 @@ export default function RadixSortExplanation() {
             <section>
                 <SectionHeader title="Complexity Analysis" icon={<Zap size={28} />} />
                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-text-secondary text-base">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Clock size={22}/> Time Complexity</h3>
                         <p>Performance depends on the number of digits and elements, not on comparisons.</p>
                         <ul className="list-none space-y-2 pt-2">
@@ -201,7 +201,7 @@ export default function RadixSortExplanation() {
                         </ul>
                         <p className="text-sm pt-2">Where <b className="text-text-primary">d</b> is the number of digits in the max number, <b className="text-text-primary">n</b> is the number of elements, and <b className="text-text-primary">k</b> is the base (usually 10).</p>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Copy size={22}/> Space Complexity</h3>
                         <p>Measures the extra memory needed.</p>
                          <div className="pt-2">
@@ -218,7 +218,7 @@ export default function RadixSortExplanation() {
             <section>
                 <SectionHeader title="Pros & Cons" icon={<Scale size={28} />} />
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-green-500 flex items-center gap-3 mb-4"><CheckCircle /> Pros</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Extremely Fast:</span> When the number of digits is small, Radix Sort can be faster than comparison-based sorts, achieving linear time complexity.</li>
@@ -226,7 +226,7 @@ export default function RadixSortExplanation() {
                             <li><span className="font-semibold text-text-primary">Simple Logic:</span> The core concept of bucketing is straightforward to understand and implement.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-red-500 flex items-center gap-3 mb-4"><XCircle /> Cons</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Limited Use Cases:</span> Works best on fixed-size data like integers or strings. It's not easily adaptable for floating-point numbers or complex objects without a clear key.</li>

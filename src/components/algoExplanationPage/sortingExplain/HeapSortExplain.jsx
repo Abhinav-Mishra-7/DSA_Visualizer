@@ -93,7 +93,7 @@ const HeapTree = ({ numbers, states = [] }) => {
 
 const HeapSortVisualizer = () => {
     return (
-        <div className="mt-8 p-4 sm:p-6 bg-card/50 border border-border rounded-xl space-y-12">
+        <div className="mt-8 md:p-3 lg:p-6 p-2 bg-card/50 border border-border rounded-xl space-y-12">
             <div>
                 <p className="mb-6 text-text-secondary"><strong className="text-text-primary">Initial Array:</strong> We start with this unsorted array. Our goal is to convert it into a Max Heap.</p>
                 <ArrayChunk numbers={[4, 10, 3, 5, 1]} />
@@ -185,7 +185,7 @@ const HeapSortVisualizer = () => {
 
 export default function HeapSortExplanation() {
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-12 animate-fade-in-up">
+        <div className="max-w-5xl mx-auto md:p-3 lg:p-6 p-1 space-y-12 animate-fade-in-up">
             
             <section>
                 <SectionHeader title="What is Heap Sort?" icon={<BrainCircuit size={28} />} />
@@ -205,7 +205,7 @@ export default function HeapSortExplanation() {
 
             <section>
                 <SectionHeader title="Algorithm Steps" icon={<ListChecks size={28} />} />
-                <div className="mt-6 bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className="mt-6 bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <ol className="list-decimal list-outside pl-6 space-y-6 text-text-secondary ">
                         <li>
                             <strong>Build the Max Heap:</strong>
@@ -236,7 +236,7 @@ export default function HeapSortExplanation() {
             <section>
                 <SectionHeader title="Complexity Analysis" icon={<Zap size={28} />} />
                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-text-secondary text-base">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Clock size={22}/> Time Complexity</h3>
                         <p>Heap Sort's performance is very consistent.</p>
                         <ul className="list-none space-y-2 pt-2">
@@ -246,7 +246,7 @@ export default function HeapSortExplanation() {
                         </ul>
                         <p>Building the initial heap takes O(n), and each of the n extractions takes O(log n) time.</p>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Shuffle size={22}/> Space Complexity</h3>
                         <p>Measures the extra memory required by the algorithm.</p>
                          <div className="pt-2">
@@ -263,7 +263,7 @@ export default function HeapSortExplanation() {
             <section>
                 <SectionHeader title="Pros & Cons" icon={<Scale size={28} />} />
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-green-500 flex items-center gap-3 mb-4"><CheckCircle /> Pros</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Guaranteed Performance:</span> It has a worst-case time complexity of O(n log n), making it a safe choice for applications where performance consistency is critical.</li>
@@ -271,7 +271,7 @@ export default function HeapSortExplanation() {
                             <li><span className="font-semibold text-text-primary">No Recursion:</span> The standard implementation is iterative, avoiding stack overflow issues that can affect recursive algorithms like Quick Sort on massive datasets.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-red-500 flex items-center gap-3 mb-4"><XCircle /> Cons</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Slower in Practice:</span> While its asymptotic complexity is excellent, it tends to be slower than a well-implemented Quick Sort in typical scenarios due to poor cache locality (jumps around in memory).</li>

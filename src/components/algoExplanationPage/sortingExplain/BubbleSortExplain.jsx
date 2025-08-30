@@ -46,7 +46,7 @@ const SortStepVisualizer = () => {
     );
 
     return (
-        <div className="mt-8 p-6 bg-card/50 border border-border rounded-xl space-y-10">
+        <div className="mt-8 md:p-3 lg:p-6 p-2 bg-card/50 border border-border rounded-xl space-y-10">
             {/* Initial State */}
             <div>
                 <p className="mb-4 text-text-secondary"><strong className="text-text-primary">Initial Array : </strong> We start with an unsorted list of numbers.</p>
@@ -217,7 +217,7 @@ const SortStepVisualizer = () => {
 
 export default function BubbleSortExplanation() {
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-2 lg:p-8 space-y-12 animate-fade-in-up">
+        <div className="max-w-5xl mx-1 md:p-4 lg:p-8 p-1 space-y-13 animate-fade-in-up">
             
             <section>
                 <SectionHeader title="What is Bubble Sort?" icon={<BrainCircuit size={28} />} />
@@ -237,7 +237,7 @@ export default function BubbleSortExplanation() {
 
             <section>
                 <SectionHeader title="Algorithm Steps" icon={<ListChecks size={28} />} />
-                <div className="mt-6 bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className="mt-6 bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <ol className="list-decimal list-outside pl-6 space-y-4 text-text-secondary">
                         <li>
                             <strong>The "Bubbling" Concept:</strong> The main idea is to make multiple passes through the array. In each pass, the next largest unsorted element will "bubble up" to its correct position at the end of the array.
@@ -271,7 +271,7 @@ export default function BubbleSortExplanation() {
             <section>
                 <SectionHeader title="Complexity Analysis" icon={<Zap size={28} />} />
                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-text-secondary text-base">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Clock size={22}/> Time Complexity</h3>
                         <p>Measures how runtime scales with input size (n).</p>
                         <ul className="list-none space-y-2 pt-2">
@@ -280,7 +280,7 @@ export default function BubbleSortExplanation() {
                             <li><strong className="text-red-500">Worst Case: O(n²)</strong> - Array is sorted in reverse.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Database size={22}/> Space Complexity</h3>
                         <p>Measures the extra memory needed.</p>
                          <div className="pt-2">
@@ -297,7 +297,7 @@ export default function BubbleSortExplanation() {
             <section>
                 <SectionHeader title="Pros & Cons" icon={<Scale size={28} />} />
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-green-500 flex items-center gap-3 mb-4"><CheckCircle /> Pros</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Simple & Intuitive</span> to understand and implement, making it a good educational tool.</li>
@@ -306,7 +306,7 @@ export default function BubbleSortExplanation() {
                              <li><span className="font-semibold text-text-primary">Can be Optimized</span> by stopping early if a pass completes with no swaps.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-red-500 flex items-center gap-3 mb-4"><XCircle /> Cons</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Highly Inefficient (O(n²))</span> for most cases, making it one of the slowest sorting algorithms.</li>

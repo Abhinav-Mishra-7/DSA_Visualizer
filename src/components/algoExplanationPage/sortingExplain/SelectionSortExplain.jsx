@@ -47,7 +47,7 @@ const SortStepVisualizer = () => {
     );
 
     return (
-        <div className="mt-8 p-6 bg-card/50 border border-border rounded-xl space-y-10">
+        <div className="mt-8 md:p-3 lg:p-6 p-2 bg-card/50 border border-border rounded-xl space-y-10">
             {/* Initial State */}
             <div>
                 <p className="mb-4 text-text-secondary"><strong className="text-text-primary">Initial Array : </strong> We begin with a completely unsorted list of numbers.</p>
@@ -155,7 +155,7 @@ const SortStepVisualizer = () => {
 
 export default function SelectionSortExplanation() {
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-12 animate-fade-in-up">
+        <div className="max-w-5xl mx-auto md:p-3 lg:p-6 p-1 space-y-12 animate-fade-in-up">
             
             <section>
                 <SectionHeader title="What is Selection Sort?" icon={<BrainCircuit size={28} />} />
@@ -176,7 +176,7 @@ export default function SelectionSortExplanation() {
 
             <section>
                 <SectionHeader title="Algorithm Steps" icon={<ListChecks size={28} />} />
-                    <div className="mt-6 bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="mt-6 bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <ol className="list-decimal list-outside pl-6 space-y-4 text-text-secondary">
                             <li>
                                 <strong>Divide and Conquer (Conceptually):</strong> Think of the array as two parts: a sorted part on the left (initially empty) and an unsorted part on the right (initially the whole array).
@@ -210,7 +210,7 @@ export default function SelectionSortExplanation() {
             <section>
                 <SectionHeader title="Complexity Analysis" icon={<Zap size={28} />} />
                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-text-secondary text-base">
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Clock size={22}/> Time Complexity</h3>
                         <p>Measures how runtime scales with input size (n).</p>
                         <ul className="list-none space-y-2 pt-2">
@@ -219,7 +219,7 @@ export default function SelectionSortExplanation() {
                             <li><strong className="text-red-500">Worst Case: O(n²)</strong> - A reverse-sorted list doesn't change the number of comparisons.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 space-y-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-semibold text-text-primary flex items-center gap-2"><Database size={22}/> Space Complexity</h3>
                         <p>Measures the extra memory needed.</p>
                          <div className="pt-2">
@@ -236,7 +236,7 @@ export default function SelectionSortExplanation() {
             <section>
                 <SectionHeader title="Pros & Cons" icon={<Scale size={28} />} />
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-green-500 flex items-center gap-3 mb-4"><CheckCircle /> Pros</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                             <li><span className="font-semibold text-text-primary">Simple & Intuitive:</span> Easy to understand and implement.</li>
@@ -244,7 +244,7 @@ export default function SelectionSortExplanation() {
                             <li><span className="font-semibold text-text-primary">Minimal Swaps:</span> Performs at most n-1 swaps, which can be useful if write operations are expensive.</li>
                         </ul>
                     </div>
-                    <div className="bg-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div className="bg-card border border-border rounded-xl md:p-3 lg:p-6 p-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <h3 className="text-xl font-bold text-red-500 flex items-center gap-3 mb-4"><XCircle /> Cons</h3>
                         <ul className="space-y-3 list-disc list-inside text-text-secondary">
                              <li><span className="font-semibold text-text-primary">Inefficient (O(n²)):</span> One of the slowest sorting algorithms, impractical for large datasets.</li>
