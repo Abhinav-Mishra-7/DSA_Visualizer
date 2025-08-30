@@ -1,20 +1,12 @@
-import { CheckCircle, XCircle, Clock, BrainCircuit, Zap, Workflow, ListChecks, Scale, ArrowRight, Filter, Copy } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, BrainCircuit, Zap, Workflow, ListChecks, Scale, Filter, Copy } from 'lucide-react';
 import TimeComplexityGraph from '../../time_space_compexity/TimeComplexityGraph';
+import SectionHeader from '../../shared/SectionHeader';
 
 const radixSortComplexities = [
     { label: 'Best Case', complexity: 'O(d*(n+k))', formula: n => n * 1.5, color: '#22C55E' }, // Simplified for visualization
     { label: 'Average Case', complexity: 'O(d*(n+k))', formula: n => n * 1.5, color: '#3B82F6' },
     { label: 'Worst Case', complexity: 'O(d*(n+k))', formula: n => n * 1.5, color: '#EF4444' },
 ];
-
-const SectionHeader = ({ title, icon }) => (
-    <div className="flex items-center gap-4 animate-fade-in-from-left">
-        <div className="w-1.5 h-8 bg-accent rounded-full"></div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary flex items-center gap-3">
-            {icon} {title}
-        </h2>
-    </div>
-);
 
 const DataBubble = ({ number, highlight, final, plain, finalWithShadow }) => (
     <div className={`

@@ -1,20 +1,12 @@
 import { CheckCircle, XCircle, Clock, BrainCircuit, Zap, Workflow, ListChecks, Scale, Shuffle, GitCommitHorizontal, ArrowRight } from 'lucide-react';
 import TimeComplexityGraph from '../../time_space_compexity/TimeComplexityGraph';
+import SectionHeader from '../../shared/SectionHeader';
 
 const quickSortComplexities = [
     { label: 'Best Case', complexity: 'O(n log n)', formula: n => n * Math.log2(n), color: '#22C55E' },
     { label: 'Average Case', complexity: 'O(n log n)', formula: n => n * Math.log2(n), color: '#3B82F6' },
     { label: 'Worst Case', complexity: 'O(n²)', formula: n => n * n, color: '#EF4444' },
 ];
-
-const SectionHeader = ({ title, icon }) => (
-    <div className="flex items-center gap-4 animate-fade-in-from-left">
-        <div className="w-1.5 h-8 bg-accent rounded-full"></div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary flex items-center gap-3">
-            {icon} {title}
-        </h2>
-    </div>
-);
 
 const QuickSortBubble = ({ number, state = 'default' }) => {
     const styles = {

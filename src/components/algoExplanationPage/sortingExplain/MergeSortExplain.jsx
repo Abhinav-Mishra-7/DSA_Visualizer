@@ -1,23 +1,13 @@
-// MergeSortExplanation.jsx
-
 import { CheckCircle, XCircle, Clock, BrainCircuit, Zap, Workflow, ListChecks, Scale, ArrowRight, GitMerge, Copy } from 'lucide-react';
 import TimeComplexityGraph from '../../time_space_compexity/TimeComplexityGraph'; 
 import SplitArrowSVG from '../../shared/SplitArrowSVG';
+import SectionHeader from '../../shared/SectionHeader';
 
 const mergeSortComplexities = [
     { label: 'Best Case', complexity: 'O(n log n)', formula: n => n * Math.log2(n), color: '#22C55E' },
     { label: 'Average Case', complexity: 'O(n log n)', formula: n => n * Math.log2(n), color: '#3B82F6' },
     { label: 'Worst Case', complexity: 'O(n log n)', formula: n => n * Math.log2(n), color: '#EF4444' },
 ];
-
-const SectionHeader = ({ title, icon }) => (
-    <div className="flex items-center gap-4 animate-fade-in-from-left">
-        <div className="w-1.5 h-8 bg-accent rounded-full"></div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary flex items-center gap-3">
-            {icon} {title}
-        </h2>
-    </div>
-);
 
 // Arrow coordinates
 const singleArrow1 = [ { start: { x: 60, y: 15 }, end: { x: -80, y: 60 } } , { start: { x: 90, y: 15 }, end: { x: 230, y: 60 } } ];
