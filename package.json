@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -16,7 +15,6 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/vite": "^4.1.11",
     "clsx": "^2.1.1",
-    "express": "^5.1.0",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "locomotive-scroll": "^4.1.4",
