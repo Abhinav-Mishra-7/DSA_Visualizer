@@ -185,7 +185,7 @@ export default function VisualizerLayout() {
 
                                     {/* Explanation Tab Content */}
                                     {activeTab === 'explanation' && (
-                                        <div className="flex-grow md:p-4 lg:p-8 p-2 overflow-y-auto">
+                                        <div className="flex-grow flex justify-center md:p-4 lg:p-8 p-2 overflow-y-auto">
                                             {ExplanationComponent && <ExplanationComponent />}
                                         </div>
                                     )}
