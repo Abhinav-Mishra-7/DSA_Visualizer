@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "node server.js",
     "dev": "vite",
-    "build": "vite build && npx cpx _redirects dist/",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -15,6 +16,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/vite": "^4.1.11",
     "clsx": "^2.1.1",
+    "express": "^5.1.0",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "locomotive-scroll": "^4.1.4",
@@ -33,7 +35,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
-    "cpx": "^1.5.0" ,
+    "cpx": "^1.5.0",
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
