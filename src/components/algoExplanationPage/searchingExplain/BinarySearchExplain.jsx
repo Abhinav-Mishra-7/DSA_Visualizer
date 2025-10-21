@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart3, Scale, Zap, CheckCircle2, XCircle } from "lucide-react";
 // Assuming KeyCharacteristicCard is exported from a shared location
-import { KeyCharacteristicCard } from './BFSExplain'; 
+// import { KeyCharacteristicCard } from '../BFSExplain'; 
 
 export default function BinarySearchExplain() {
     const info = {

@@ -1,97 +1,187 @@
 import { useState, useMemo, useCallback } from 'react';
-import ArrayCanvasSearch from '../../components/visualizers/canvases/ArrayCanvasSearch';
-import ArrayControlsSearch from '../../components/visualizers/controls/ArrayControlsSearch';
-import LinearSearchExplain from '../../components/algoExplanationPage/LinearSearchExplain';
+import usePersistentState from '../../hooks/usePersistentState';
+import LinearSearchExplanation from '../../components/algoExplanationPage/searchingExplain/LinearSearchExplain';
+import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
+import LinearSearchControls from '../../components/visualizers/controls/LinearSearchControls';
+import LinearSearchAnnotation from '../../components/visualizers/step_annotations/searching_annotations/LinearSearchAnnotation';
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
-// Helper to generate a random array (sorting is not needed for Linear Search)
-const generateArray = () => Array.from({length: 10}, () => Math.floor(Math.random() * 100));
+const deepCopy = (arr) => JSON.parse(JSON.stringify(arr));
 
-// The core algorithm logic for Linear Search
-const getLinearSearchSteps = (array, target) => {
-    const steps = [];
-    let foundIndex = -1;
-    steps.push({ array: [...array], currentIndex: -1, foundIndex, isFinished: false, message: `Starting Linear Search for target: ${target}.` });
-    
-    for (let i = 0; i < array.length; i++) {
-        steps.push({ array: [...array], currentIndex: i, foundIndex, isFinished: false, message: `Checking index ${i}. Is ${array[i]} === ${target}?` });
-        if (array[i] === target) {
-            foundIndex = i;
-            // Add a final "found" step and break the loop
-            steps.push({ array: [...array], currentIndex: i, foundIndex, isFinished: true, message: `Target ${target} found at index ${i}!` });
-            break;
+const getLinearSearchSteps = (initialArray, target) => {
+  if (!initialArray || initialArray.length === 0) return [];
+
+  const steps = [];
+  const arr = deepCopy(initialArray);
+  const n = arr.length;
+
+  // Initial step with better context
+  steps.push({
+    array: deepCopy(arr),
+    checking: [], found: [], notFound: [],
+    message: { text: `Searching for target ${target} in array of ${n} elements. Starting from index 0.` }
+  });
+
+  for (let i = 0; i < n; i++) {
+    // Step 1: Lift element and ask question with index info
+    steps.push({
+      array: deepCopy(arr),
+      checking: [i],
+      found: [],
+      notFound: Array.from({ length: i }, (_, k) => k),
+      message: { 
+        text: `Checking index ${i}: Is ${arr[i].value} == ${target}?`, 
+        indices: [i] 
+      }
+    });
+
+    if (arr[i].value === target) {
+      // Step 2a: Found - announce with index
+      steps.push({
+        array: deepCopy(arr),
+        checking: [i],
+        found: [],
+        notFound: Array.from({ length: i }, (_, k) => k),
+        message: { 
+          text: `Yes! Found target ${target} at index ${i}.`, 
+          indices: [i] 
         }
+      });
+
+      // Step 3a: Final highlight
+      steps.push({
+        array: deepCopy(arr),
+        checking: [],
+        found: [i],
+        notFound: Array.from({ length: i }, (_, k) => k),
+        message: { 
+          text: `Search complete! Target ${target} found at index ${i}.`, 
+          indices: [i] 
+        }
+      });
+
+      return steps;
+    } else {
+      // Step 2b: Not found - explain with index
+      steps.push({
+        array: deepCopy(arr),
+        checking: [i],
+        found: [],
+        notFound: Array.from({ length: i }, (_, k) => k),
+        message: { 
+          text: `No. ${arr[i].value} ≠ ${target}. Continue to next index.`, 
+          indices: [i] 
+        }
+      });
+
+      // Step 3b: Drop and move on
+      steps.push({
+        array: deepCopy(arr),
+        checking: [],
+        found: [],
+        notFound: Array.from({ length: i + 1 }, (_, k) => k),
+        message: { 
+          text: i < n - 1 ? `Moving to index ${i + 1}...` : `Checked all indices.`
+        }
+      });
     }
-    
-    // If the loop finishes without finding the element, add a "not found" step
-    if (foundIndex === -1) {
-        steps.push({ array: [...array], currentIndex: array.length - 1, foundIndex, isFinished: true, message: `Target ${target} not found in the array.` });
+  }
+
+  // Not found in entire array
+  steps.push({
+    array: deepCopy(arr),
+    checking: [],
+    found: [],
+    notFound: Array.from({ length: n }, (_, k) => k),
+    message: { 
+      text: `Search complete. Target ${target} not found in array (checked indices 0 to ${n-1}).` 
     }
-    
-    return steps;
+  });
+
+  return steps;
 };
 
-export default function LinearSearchProvider({ children }) {
-    const [array, setArray] = useState(generateArray);
-    const [target, setTarget] = useState(() => String(array[Math.floor(Math.random() * array.length)]));
-    const [userInput, setUserInput] = useState(array.join(', '));
+export default function LinearSearchProvider({children}) {
+    const [initialArray, setInitialArray] = usePersistentState('linearSearchInitialArray_v1', GenerateRandomArray(10));
+    const [searchTarget, setSearchTarget] = useState(48);
+
+    const [userInput, setUserInput] = useState(
+        (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
+            ? initialArray.map(item => item.value).join(', ')
+            : ''
+    );
     
-    const steps = useMemo(() => getLinearSearchSteps(array, parseInt(target, 10)), [array, target]);
+    const [targetInput, setTargetInput] = useState(searchTarget?.toString() || '48');
+    const steps = useMemo(() => getLinearSearchSteps(initialArray, searchTarget), [initialArray, searchTarget]);
 
-    const handleGenerateArray = useCallback(() => {
-        const newArray = generateArray();
-        setArray(newArray);
-        setUserInput(newArray.join(', '));
-        // Set a new random target from the new array for a fresh start
-        setTarget(String(newArray[Math.floor(Math.random() * newArray.length)]));
-    }, []);
+    const resetArray = useCallback(() => {
+        const newArray = GenerateRandomArray(10); 
+        setInitialArray(newArray);
+        setUserInput(newArray.map(item => item.value).join(', '));
+        const randomTarget = newArray[Math.floor(Math.random() * newArray.length)].value;
+        setSearchTarget(randomTarget);
+        setTargetInput(randomTarget.toString());
+    }, [setInitialArray, setSearchTarget]);
 
-    const handleApplyUserInput = useCallback(() => {
-        // 1. Parse the user's string input into an array of numbers.
-        const processedInput = userInput
+    
+    const applyUserInput = useCallback(() => {
+        const parsedValues = userInput
             .split(',')
-            .map(s => parseInt(s.trim(), 10))
-            // 2. Filter out any invalid entries (non-numbers, out of range).
-            .filter(n => !isNaN(n) && n >= 0 && n <= 100)
-            // 3. Enforce a maximum size for the visualizer.
-            .slice(0, 15);
-        
-        const uniqueValues = Array.from(new Set(processedInput));
-        // 4. Update the main array state. NOTE: We do NOT sort for Linear Search.
-        setArray(uniqueValues);
-        // 5. Update the text area to show the cleaned-up version.
-        setUserInput(uniqueValues.join(', '));
+            .map(item => parseInt(item.trim(), 10))
+            .filter(num => !isNaN(num) && num >= 1 && num <= 100)
+            .slice(0, 10); 
 
-        // 6. If the old target isn't in the new array, pick a sensible new one.
-        if (uniqueValues.length > 0 && !uniqueValues.includes(parseInt(target, 10))) {
-            setTarget(String(uniqueValues[0]));
+        const parsedTarget = parseInt(targetInput.trim(), 10);
+
+        if (parsedValues.length >= 2 && !isNaN(parsedTarget)) {
+            const newArray = parsedValues.map((val, i) => ({
+                id: `user-item-${i}-${Date.now()}`,
+                value: val
+            }));
+            setInitialArray(newArray);
+            setSearchTarget(parsedTarget);
+        } else {
+            alert('Please enter at least 2 valid, comma-separated numbers (1-100) for the array and a valid target number. Max 10 numbers for array.');
         }
-    }, [userInput, target]);
-    
-    const getBarState = useCallback((index, step) => {
-        if (!step) return 'default';
-        const { foundIndex, currentIndex } = step;
-        if (foundIndex === index) return 'found';
-        if (currentIndex === index) return 'checking';
-        return 'default';
-    }, []);
+    }, [userInput, targetInput, setInitialArray, setSearchTarget]);
 
-    const canvasProps = { getBarState };
-    
-    const controlProps = {
-        target,
-        onTargetChange: (e) => setTarget(e.target.value),
-        userInput,
-        onUserInput: (e) => setUserInput(e.target.value),
-        onApplyUserInput: handleApplyUserInput,
-        onGenerateArray: handleGenerateArray,
-    };
+    const onApplyTarget = useCallback(() => {
+        const parsedTarget = parseInt(targetInput.trim(), 10);
+        if (Number.isNaN(parsedTarget) || parsedTarget < 1 || parsedTarget > 100) {
+            alert('Enter a valid target (1–100).');
+            return;
+        }
+        setSearchTarget(parsedTarget); 
+    }, [targetInput, setSearchTarget]);
+
+    const getElementState = useCallback((item, index, stepData) => {
+        if (!stepData) return 'bg-accent/60 border-accent';
+        if (stepData.found?.includes(index)) return 'bg-green-500/80 border-green-400 shadow-lg shadow-green-800';
+        if (stepData.checking?.includes(index)) return 'bg-yellow-500/80 border-yellow-400 shadow-lg shadow-yellow-800';
+        if (stepData.notFound?.includes(index)) return 'bg-red-500/80 border-red-400';
+        return 'bg-accent/60 border-accent'; 
+    }, []);
 
     return children({
         steps,
-        ExplanationComponent: LinearSearchExplain,
-        CanvasComponent: ArrayCanvasSearch, // Reuses the canvas from Binary Search
-        ControlsComponent: ArrayControlsSearch, // Reuses the controls from Binary Search
-        canvasProps,
-        controlProps
+        ExplanationComponent: () => <LinearSearchExplanation/>,
+        CanvasComponent: ArrayCanvas,
+        ControlsComponent: LinearSearchControls,
+        canvasProps: { 
+            getElementState: getElementState,
+            AnnotationComponent: LinearSearchAnnotation,
+        },
+        controlProps: { 
+            userInput, 
+            onUserInput: (e) => setUserInput(e.target.value), 
+            onApplyUserInput: applyUserInput,
+            onResetRequest: resetArray,
+            // Additional props for search target
+            searchTarget: searchTarget,
+            targetInput: targetInput,
+            onTargetInput: (e) => setTargetInput(e.target.value),
+            onApplyTarget: onApplyTarget, 
+            showSearchTarget: true,
+        },
     });
 }

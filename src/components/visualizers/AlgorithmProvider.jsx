@@ -3,13 +3,18 @@ import InsertionSortProvider from '../../visualizers/sorting/InsertionSortPage';
 import SelectionSortProvider from '../../visualizers/sorting/SelectionSortPage';
 import BFSProvider from '../../visualizers/graph/BFSPage'; 
 import DFSProvider from '../../visualizers/graph/DFSPage';
-import InOrderTraversalProvider from '../../visualizers/tree/InOrderTraversalPage';
+// import InOrderTraversalProvider from '../../visualizers/tree/InOrderTraversalPage';
 import BinarySearchProvider from '../../visualizers/searching/BinarySearchPage';
+import LinearSearchProvider from '../../visualizers/searching/LinearSearchPage';
 import MergeSortProvider from '../../visualizers/sorting/MergeSortPage';
 import RadixSortProvider from '../../visualizers/sorting/RadixSortPage';
 import QuickSortProvider from '../../visualizers/sorting/QuickSortPage';
 import HeapSortProvider from '../../visualizers/sorting/HeapSortPage';
 import BucketSortProvider from '../../visualizers/sorting/BucketSortPage';
+import JumpSearchProvider from '../../visualizers/searching/JumpSearchPage';
+import InterpolationSearchProvider from '../../visualizers/searching/InterpolationSearchPage';
+import DijkstraProvider from '../../visualizers/graph/DijkstraPage';
+import KruskalProvider from '../../visualizers/graph/KruskalPage';
 
 const pageProviderMap = {
   'bubble-sort': BubbleSortProvider,
@@ -22,8 +27,13 @@ const pageProviderMap = {
   'bucket-sort' : BucketSortProvider,
   'bfs': BFSProvider,
   'dfs': DFSProvider,
-  'in-order-traversal': InOrderTraversalProvider,
+  // 'in-order-traversal': InOrderTraversalProvider,
   'binary-search': BinarySearchProvider,
+  'linear-search' : LinearSearchProvider,
+  'jump-search': JumpSearchProvider ,
+  'interpolation-search': InterpolationSearchProvider ,
+  'dijkstra' : DijkstraProvider ,
+  'kruskal-mst' : KruskalProvider
 };
 
 const NotFoundProvider = ({ children }) => {

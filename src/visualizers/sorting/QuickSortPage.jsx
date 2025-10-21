@@ -3,18 +3,11 @@ import usePersistentState from '../../hooks/usePersistentState';
 import QuickSortExplanation from '../../components/algoExplanationPage/sortingExplain/QuickSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import QuickSortAnnotation from '../../components/visualizers/step_annotations/QuickSortAnnotation';
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`, 
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
+import QuickSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/QuickSortAnnotation';
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
 const deepCopy = (arr) => JSON.parse(JSON.stringify(arr));
 
-// --- Core Quick Sort Step Generation Logic ---
 const getQuickSortSteps = (initialArray) => {
     if (!initialArray || initialArray.length <= 1) return [];
     
@@ -121,10 +114,8 @@ const getQuickSortSteps = (initialArray) => {
     return steps;
 };
 
-
-// --- The React Provider Component ---
 export default function QuickSortProvider({ children }) {
-    const [initialArray, setInitialArray] = usePersistentState('quickSortInitialArray_v1', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('quickSortInitialArray_v1', GenerateRandomArray(10));
     const [userInput, setUserInput] = useState(
         (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
             ? initialArray.map(item => item.value).join(', ')
@@ -134,7 +125,7 @@ export default function QuickSortProvider({ children }) {
     const steps = useMemo(() => getQuickSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
@@ -144,7 +135,7 @@ export default function QuickSortProvider({ children }) {
             .split(',')
             .map(item => parseInt(item.trim(), 10))
             .filter(num => !isNaN(num) && num >= 1 && num <= 100)
-            .slice(0, 15); // Quick sort is visually complex, keep it smaller
+            .slice(0, 10); // Quick sort is visually complex, keep it smaller
 
         if (parsedValues.length >= 2) {
             const newArray = parsedValues.map((val, i) => ({

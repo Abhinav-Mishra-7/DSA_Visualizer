@@ -3,16 +3,10 @@ import usePersistentState from '../../hooks/usePersistentState';
 import InsertionSortExplain from '../../components/algoExplanationPage/sortingExplain/InsertionSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import InsertionSortAnnotation from '../../components/visualizers/step_annotations/InsertionSortAnnotation';
+import InsertionSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/InsertionSortAnnotation';
+import GenerateRandomArray from "../../components/shared/GenerateRandomArray"
 
 const deepCopy = (arr) => JSON.parse(JSON.stringify(arr));
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`,
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
 
 export const getInsertionSortSteps = (initialArray) => {
     if (!initialArray || initialArray.length === 0) return [];
@@ -121,21 +115,21 @@ export const getInsertionSortSteps = (initialArray) => {
 
 // The rest of the provider component is unchanged.
 export default function InsertionSortProvider({ children }) {
-    const [initialArray, setInitialArray] = usePersistentState('insertionSortInitialArray_v8', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('insertionSortInitialArray_v8', GenerateRandomArray(10));
     const [userInput, setUserInput] = useState(
         (initialArray && Array.isArray(initialArray)) ? initialArray.map(item => item.value).join(', ') : ''
     );
     const steps = useMemo(() => getInsertionSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
 
     const applyUserInput = useCallback(() => {
         const parsedValues = userInput.split(',').map(item => parseInt(item.trim(), 10))
-            .filter(num => !isNaN(num) && num >= 1 && num <= 100).slice(0, 15);
+            .filter(num => !isNaN(num) && num >= 1 && num <= 100).slice(0, 10);
         if (parsedValues.length >= 2) {
             const newArray = parsedValues.map((val, i) => ({
                 id: `user-item-${i}-${Date.now()}`, value: val

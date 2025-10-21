@@ -3,14 +3,8 @@ import usePersistentState from '../../hooks/usePersistentState';
 import SelectionSortExplanation from '../../components/algoExplanationPage/sortingExplain/SelectionSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import BubbleSortAnnotation from '../../components/visualizers/step_annotations/BubbleSortAnnotation';
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`, // Unique stable ID
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
+import BubbleSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/BubbleSortAnnotation';
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
 const getSelectionSortSteps = (initialArray) => {
     // Add a guard clause for invalid or old data formats
@@ -100,8 +94,7 @@ const getSelectionSortSteps = (initialArray) => {
 };
 
 export default function SelectionSortProvider({children}) {
-    // THE FIX: Changed the key to invalidate old, incorrectly formatted data from localStorage
-    const [initialArray, setInitialArray] = usePersistentState('selectionSortInitialArray_v2', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('selectionSortInitialArray_v2', GenerateRandomArray(10));
     
     // UPDATED: User input should reflect the values, not the objects
     const [userInput, setUserInput] = useState(
@@ -113,7 +106,7 @@ export default function SelectionSortProvider({children}) {
     const steps = useMemo(() => getSelectionSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
@@ -123,7 +116,7 @@ export default function SelectionSortProvider({children}) {
             .split(',')
             .map(item => parseInt(item.trim(), 10))
             .filter(num => !isNaN(num) && num >= 1 && num <= 100)
-            .slice(0, 15);
+            .slice(0, 10);
 
         if (parsedValues.length >= 2) {
             // UPDATED: Convert numbers to the {id, value} structure

@@ -3,15 +3,9 @@ import usePersistentState from '../../hooks/usePersistentState';
 import BucketSortExplanation from '../../components/algoExplanationPage/sortingExplain/BucketSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import BucketSortAnnotation from '../../components/visualizers/step_annotations/BucketSortAnnotations';
+import BucketSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/BucketSortAnnotations';
 import { getInsertionSortSteps } from './InsertionSortPage';
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`,
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
+import GenerateRandomArray from "../../components/shared/GenerateRandomArray" ;
 
 function getBucketSortSteps(initialArray, bucketCount = 5) {
   if (!initialArray || initialArray.length <= 1) return [];
@@ -283,7 +277,7 @@ function getBucketSortSteps(initialArray, bucketCount = 5) {
 
 export default function BucketSortProvider({ children }) {
   const [initialArray, setInitialArray] = usePersistentState(
-    'bucketSortInitialArray_v1', generateRandomArray()
+    'bucketSortInitialArray_v1', GenerateRandomArray(10)
   );
   const [userInput, setUserInput] = useState(
     (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
@@ -293,7 +287,7 @@ export default function BucketSortProvider({ children }) {
 
   const steps = useMemo(() => getBucketSortSteps(initialArray, 5), [initialArray]);
   const resetArray = useCallback(() => {
-    const newArray = generateRandomArray();
+    const newArray = GenerateRandomArray(10);
     setInitialArray(newArray);
     setUserInput(newArray.map(item => item.value).join(', '));
   }, [setInitialArray]);
@@ -303,7 +297,7 @@ export default function BucketSortProvider({ children }) {
       .split(',')
       .map(item => parseInt(item.trim(), 10))
       .filter(num => !isNaN(num) && num >= 1 && num <= 100)
-      .slice(0, 15);
+      .slice(0, 10);
 
     if (parsedValues.length >= 2) {
       const newArray = parsedValues.map((val, i) => ({
@@ -312,7 +306,7 @@ export default function BucketSortProvider({ children }) {
       }));
       setInitialArray(newArray);
     } else {
-      alert('Please enter at least 2 valid, comma-separated numbers (1-100). Max 15 numbers.');
+      alert('Please enter at least 2 valid, comma-separated numbers (1-100). Max 10 numbers.');
     }
   }, [userInput, setInitialArray]);
 
@@ -325,7 +319,7 @@ export default function BucketSortProvider({ children }) {
     if (stage === "merging" || stage === "preMerging") {
       // Currently merging element - bright green with animation
       if (index === mergingIndex) {
-        return 'bg-green-500 border-green-400 shadow-lg';
+        return 'bg-green-500 border-green-400 shadow-md';
       }
       
       // Already merged elements - simple solid green
@@ -339,7 +333,7 @@ export default function BucketSortProvider({ children }) {
     
     // Handle final completion - simple solid green
     if (stepData.allMerged) {
-      return 'bg-green-500 border-green-400 shadow-md';
+      return 'bg-green-500 border-green-400 shadow-lg';
     }
     
     // Handle bucket insertion sort phase

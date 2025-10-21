@@ -3,15 +3,8 @@ import usePersistentState from '../../hooks/usePersistentState';
 import BubbleSortExplanation from '../../components/algoExplanationPage/sortingExplain/BubbleSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import BubbleSortAnnotation from '../../components/visualizers/step_annotations/BubbleSortAnnotation';
-
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`, 
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
+import BubbleSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/BubbleSortAnnotation';
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
 const deepCopy = (arr) => JSON.parse(JSON.stringify(arr));
 
@@ -125,7 +118,7 @@ export const KeyCharacteristicCard = ({ icon, title, value, valueColor, children
 );
 
 export default function BubbleSortProvider({children}) {
-    const [initialArray, setInitialArray] = usePersistentState('bubbleSortInitialArray_v2', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('bubbleSortInitialArray_v2', GenerateRandomArray(10));
 
     const [userInput, setUserInput] = useState(
         (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
@@ -136,7 +129,7 @@ export default function BubbleSortProvider({children}) {
     const steps = useMemo(() => getBubbleSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
@@ -146,7 +139,7 @@ export default function BubbleSortProvider({children}) {
             .split(',')
             .map(item => parseInt(item.trim(), 10))
             .filter(num => !isNaN(num) && num >= 1 && num <= 100)
-            .slice(0, 15);
+            .slice(0, 10);
 
         if (parsedValues.length >= 2) {
             const newArray = parsedValues.map((val, i) => ({
@@ -162,8 +155,8 @@ export default function BubbleSortProvider({children}) {
     const getElementState = useCallback((item, index, stepData) => {
         if (!stepData) return 'bg-accent/60 border-accent';
         if (stepData.sorted?.includes(index)) return 'bg-green-500/80 border-green-400';
-        if (stepData.swapping?.includes(index)) return 'bg-purple-500/80 border-purple-400 shadow-lg shadow-purple-500/50';
-        if (stepData.comparing?.includes(index)) return 'bg-yellow-500/80 border-yellow-400';
+        if (stepData.swapping?.includes(index)) return 'bg-purple-500/80 border-purple-400 shadow-lg shadow-purple-800';
+        if (stepData.comparing?.includes(index)) return 'bg-yellow-500/80 border-yellow-400 shadow-lg shadow-yellow-800';
         return 'bg-accent/60 border-accent'; 
     }, []);
 

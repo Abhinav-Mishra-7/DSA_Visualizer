@@ -3,16 +3,9 @@ import usePersistentState from '../../hooks/usePersistentState';
 import MergeSortExplanation from '../../components/algoExplanationPage/sortingExplain/MergeSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import BubbleSortAnnotation from '../../components/visualizers/step_annotations/BubbleSortAnnotation'; 
+import BubbleSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/BubbleSortAnnotation'; 
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
-const generateRandomArray = (size = 8) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`, 
-    value: Math.floor(Math.random() * 95) + 5,
-  }));
-};
-
-// This function generates steps compatible with BubbleSortAnnotation
 const getMergeSortSteps = (initialArray) => {
     if (!initialArray || initialArray.length <= 1) return [];
     
@@ -119,10 +112,8 @@ const getMergeSortSteps = (initialArray) => {
     return steps;
 };
 
-
-// --- The React Provider Component ---
 export default function MergeSortProvider({ children }) {
-    const [initialArray, setInitialArray] = usePersistentState('mergeSortInitialArray_v3', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('mergeSortInitialArray_v3', GenerateRandomArray(10));
     const [userInput, setUserInput] = useState(
         (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
             ? initialArray.map(item => item.value).join(', ')
@@ -132,7 +123,7 @@ export default function MergeSortProvider({ children }) {
     const steps = useMemo(() => getMergeSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
@@ -142,7 +133,7 @@ export default function MergeSortProvider({ children }) {
             .split(',')
             .map(item => parseInt(item.trim(), 10))
             .filter(num => !isNaN(num) && num >= 1 && num <= 100)
-            .slice(0, 20);
+            .slice(0, 10);
 
         if (parsedValues.length >= 2) {
             const newArray = parsedValues.map((val, i) => ({

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useLayoutEffect, useRef } from 'react';
-import MessageBox from '../../shared/MessageBox';
-import { SimplePointer } from '../../shared/Pointers';
+import MessageBox from '../../../shared/MessageBox';
+import { SimplePointer } from '../../../shared/Pointers';
 
 export default function BubbleSortAnnotation({ stepData, elementSize, gap, containerRef, bumpYPosition }) {
     const { message, comparing, swapping } = stepData;
@@ -78,7 +78,7 @@ export default function BubbleSortAnnotation({ stepData, elementSize, gap, conta
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute top-[-140px] left-0 w-full h-full pointer-events-none z-10"
+            className="absolute lg:top-[-150px] md:top-[-120px] top-[-105px] lg:left-0 left-0 w-full h-full pointer-events-none z-10"
         >
            
             <MessageBox message={message} style={style} messageRef={messageRef}></MessageBox>

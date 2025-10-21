@@ -3,14 +3,8 @@ import usePersistentState from '../../hooks/usePersistentState';
 import RadixSortExplanation from '../../components/algoExplanationPage/sortingExplain/RadixSortExplain';
 import ArrayCanvas from '../../components/visualizers/canvases/ArrayCanvas';
 import ArrayControls from '../../components/visualizers/controls/ArrayControls';
-import RadixSortAnnotation from '../../components/visualizers/step_annotations/RadixSortAnnotation';
-
-const generateRandomArray = (size = 10) => {
-  return Array.from({ length: size }, (_, i) => ({
-    id: `item-${i}-${Math.random().toString(36).substr(2, 9)}`, 
-    value: Math.floor(Math.random() * 99) + 10, 
-  }));
-};
+import RadixSortAnnotation from '../../components/visualizers/step_annotations/sorting_annotations/RadixSortAnnotation';
+import GenerateRandomArray from '../../components/shared/GenerateRandomArray';
 
 const deepCopy = (arr) => JSON.parse(JSON.stringify(arr));
 
@@ -119,7 +113,7 @@ const getRadixSortSteps = (initialArray) => {
 };
 
 export default function RadixSortProvider({ children }) {
-    const [initialArray, setInitialArray] = usePersistentState('radixSortInitialArray_v2', generateRandomArray());
+    const [initialArray, setInitialArray] = usePersistentState('radixSortInitialArray_v2', GenerateRandomArray(10));
     const [userInput, setUserInput] = useState(
         (initialArray && Array.isArray(initialArray) && initialArray.length > 0)
             ? initialArray.map(item => item.value).join(', ')
@@ -129,7 +123,7 @@ export default function RadixSortProvider({ children }) {
     const steps = useMemo(() => getRadixSortSteps(initialArray), [initialArray]);
 
     const resetArray = useCallback(() => {
-        const newArray = generateRandomArray();
+        const newArray = GenerateRandomArray(10);
         setInitialArray(newArray);
         setUserInput(newArray.map(item => item.value).join(', '));
     }, [setInitialArray]);
@@ -139,7 +133,7 @@ export default function RadixSortProvider({ children }) {
             .split(',')
             .map(item => parseInt(item.trim(), 10))
             .filter(num => !isNaN(num) && num >= 10 && num <= 999)
-            .slice(0, 15); 
+            .slice(0, 10); 
 
         if (parsedValues.length >= 2) {
             const newArray = parsedValues.map((val, i) => ({

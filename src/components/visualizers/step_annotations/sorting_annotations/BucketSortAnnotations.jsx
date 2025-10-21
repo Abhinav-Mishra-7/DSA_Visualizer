@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useLayoutEffect, useRef } from 'react';
 import InsertionSortAnnotation from './InsertionSortAnnotation';
-import { BucketPointer , GroupedBucketPointer } from '../../shared/Pointers';
+import { BucketPointer , GroupedBucketPointer } from '../../../shared/Pointers';
 
 const GROUPED_BUCKET_LABEL_COLORS = [
   "bg-purple-400 border-purple-500 text-white",

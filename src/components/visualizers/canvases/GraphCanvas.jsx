@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import MessageBox from '../../shared/MessageBox';
 
 const getSVGCoordinates = (svg, event) => {
     const pt = svg.createSVGPoint();
@@ -8,9 +9,20 @@ const getSVGCoordinates = (svg, event) => {
     return screenCTM ? pt.matrixTransform(screenCTM.inverse()) : null;
 };
 
-export default function GraphCanvas({ stepData, getGraphNodeState, getGraphEdgeState, onCanvasClick, onNodeClick, editMode, edgeStartNode, isDirected }) {
+export default function GraphCanvas({ 
+    stepData, 
+    getGraphNodeState, 
+    getGraphEdgeState, 
+    onCanvasClick, 
+    onNodeClick, 
+    editMode, 
+    edgeStartNode, 
+    isDirected,
+    showWeights = false, 
+    AnnotationComponent 
+}) {
     const svgRef = useRef(null);
-    const NODE_RADIUS = 15;
+    const NODE_RADIUS = 12;
 
     if (!stepData || !stepData.nodes) {
         return <div className="flex items-center justify-center h-full text-text-secondary">Loading Graph...</div>;
@@ -44,10 +56,24 @@ export default function GraphCanvas({ stepData, getGraphNodeState, getGraphEdgeS
         'stroke-accent': 'url(#arrowhead-visited)',
         'stroke-purple-500': 'url(#arrowhead-potential)',
         'stroke-yellow-400': 'url(#arrowhead-active)',
+        'stroke-green-500': 'url(#arrowhead-relaxed)', // For Dijkstra relaxed edges
     };
 
+    // Message box styling - always centered
+    const messageStyle = { left: '50%', transform: 'translateX(-50%)' };
+
     return (
-        <div className="flex items-center justify-center h-full w-full">
+        <div className="relative flex items-center justify-center h-full w-full">
+            {/* Message Box - positioned above the graph */}
+            {stepData.info && (
+                <div className="absolute top-4 z-10 w-full pointer-events-none">
+                    <MessageBox 
+                        message={{ text: stepData.info }} 
+                        style={messageStyle}
+                    />
+                </div>
+            )}
+
             <svg ref={svgRef} viewBox="0 0 600 400" className={`w-full h-full ${cursorClass}`} onClick={handleCanvasClick}>
                 <defs>
                     <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -62,10 +88,22 @@ export default function GraphCanvas({ stepData, getGraphNodeState, getGraphEdgeS
                         <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                     
-                    <marker id="arrowhead-default" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-gray-600" /></marker>
-                    <marker id="arrowhead-visited" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-accent" /></marker>
-                    <marker id="arrowhead-potential" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" fill="url(#arrowGradient)" /></marker>
-                    <marker id="arrowhead-active" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-yellow-400" /></marker>
+                    {/* Arrow markers */}
+                    <marker id="arrowhead-default" viewBox="2 -5 12 12" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" className="fill-gray-600"/>
+                    </marker>
+                    <marker id="arrowhead-visited" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" className="fill-accent" />
+                    </marker>
+                    <marker id="arrowhead-potential" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" fill="url(#arrowGradient)" />
+                    </marker>
+                    <marker id="arrowhead-active" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" className="fill-yellow-500" />
+                    </marker>
+                    <marker id="arrowhead-relaxed" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" className="fill-green-500" />
+                    </marker>
                 </defs>
 
                 <g filter="url(#dropshadow)">
@@ -84,42 +122,222 @@ export default function GraphCanvas({ stepData, getGraphNodeState, getGraphEdgeS
                         if (isDirected) {
                             const dx = to.x - from.x;
                             const dy = to.y - from.y;
-                            const length = Math.sqrt(dx * dx + dy * dy);
+                            const length = Math.sqrt(dx * dx + dy * dy) ;
                             if (length > 0) {
                                 const unitX = dx / length;
                                 const unitY = dy / length;
-                                targetX = to.x - unitX * (NODE_RADIUS + 2);
-                                targetY = to.y - unitY * (NODE_RADIUS + 2);
+                                targetX = to.x - unitX * (NODE_RADIUS + 8);
+                                targetY = to.y - unitY * (NODE_RADIUS + 8);
                             }
                         }
 
                         return (
-                            <line 
-                                key={`${edge.from}-${edge.to}`} 
-                                x1={from.x} y1={from.y} 
-                                x2={targetX} y2={targetY} 
-                                className={`transition-all duration-300 ${edgeClass}`} 
-                                strokeWidth="3" 
-                                markerEnd={isDirected ? markerUrl : null} // Conditionally apply arrows
-                            />
+                            <g key={`edge-${edge.from}-${edge.to}`}>
+                                {/* Edge line */}
+                                <line 
+                                    x1={from.x} y1={from.y} 
+                                    x2={targetX} y2={targetY} 
+                                    className={`transition-all duration-300 ${edgeClass}`} 
+                                    strokeWidth="3" 
+                                    markerEnd={isDirected ? markerUrl : null}
+                                />
+                                
+                                {/* Weight label (for Dijkstra) */}
+                                {showWeights && edge.weight !== undefined && (
+                                    <g>
+                                        <circle 
+                                            cx={(from.x + to.x) / 2} 
+                                            cy={(from.y + to.y) / 2} 
+                                            r="8" 
+                                            fill="white" 
+                                            stroke="#6b7280" 
+                                            strokeWidth="0.5"
+                                            className="transition-all duration-300"
+                                        />
+                                        <text 
+                                            x={(from.x + to.x) / 2} 
+                                            y={(from.y + to.y) / 2 + 4} 
+                                            textAnchor="middle" 
+                                            className="fill-gray-800 font-semibold text-xs select-none pointer-events-none"
+                                        >
+                                            {edge.weight}
+                                        </text>
+                                    </g>
+                                )}
+                            </g>
                         );
                     })}
                 </g>
 
+                {/* Nodes */}
                 {stepData.nodes.map(node => {
                     const nodeClass = getGraphNodeState ? getGraphNodeState(node.id, stepData) : 'fill-gray-500';
                     const isEdgeStart = editMode === 'add-edge' && edgeStartNode === node.id;
+                    
                     return (
                         <g key={node.id} onClick={(e) => handleNodeClick(e, node.id)} style={{ filter: 'url(#dropshadow)' }}>
-                            <circle cx={node.x} cy={node.y} r={NODE_RADIUS} className={`transition-all duration-300 ${nodeClass}`} stroke={isEdgeStart ? '#FBBF24' : 'white'} strokeWidth={isEdgeStart ? 3 : 2} />
-                            <text x={node.x} y={node.y + 5} textAnchor="middle" className="fill-white font-bold text-sm select-none pointer-events-none">{node.id}</text>
+                            <circle 
+                                cx={node.x} 
+                                cy={node.y} 
+                                r={NODE_RADIUS} 
+                                className={`transition-all duration-300 ${nodeClass}`} 
+                                stroke={isEdgeStart ? '#FBBF24' : 'white'} 
+                                strokeWidth={isEdgeStart ? 3 : 1.5} 
+                            />
+                            <text 
+                                x={node.x} 
+                                y={node.y +4} 
+                                textAnchor="middle" 
+                                className="fill-white font-bold text-xs select-none pointer-events-none"
+                            >
+                                {node.id}
+                            </text>
+                            
+                            {/* Distance label for Dijkstra */}
+                            {stepData.distances && stepData.distances[node.id] !== undefined && stepData.distances[node.id] !== Infinity && (
+                                <text 
+                                    x={node.x} 
+                                    y={node.y - NODE_RADIUS - 8} 
+                                    textAnchor="middle" 
+                                    className="fill-text-primary font-bold text-xs"
+                                >
+                                    {stepData.distances[node.id]}
+                                </text>
+                            )}
                         </g>
                     );
                 })}
             </svg>
+
+            {/* Optional annotation component for future use */}
+            {AnnotationComponent && <AnnotationComponent stepData={stepData} />}
         </div>
     );
 }
+
+
+// import React, { useRef } from 'react';
+
+// const getSVGCoordinates = (svg, event) => {
+//     const pt = svg.createSVGPoint();
+//     pt.x = event.clientX;
+//     pt.y = event.clientY;
+//     const screenCTM = svg.getScreenCTM();
+//     return screenCTM ? pt.matrixTransform(screenCTM.inverse()) : null;
+// };
+
+// export default function GraphCanvas({ stepData, getGraphNodeState, getGraphEdgeState, onCanvasClick, onNodeClick, editMode, edgeStartNode, isDirected }) {
+//     const svgRef = useRef(null);
+//     const NODE_RADIUS = 15;
+
+//     if (!stepData || !stepData.nodes) {
+//         return <div className="flex items-center justify-center h-full text-text-secondary">Loading Graph...</div>;
+//     }
+
+//     const handleCanvasClick = (event) => {
+//         // Only trigger the add node function if in the correct mode and clicking on the SVG background
+//         if (editMode === 'add-node' && svgRef.current && event.target.tagName === 'svg') {
+//             const coords = getSVGCoordinates(svgRef.current, event);
+//             if (coords) onCanvasClick(coords);
+//         }
+//     };
+
+//     const handleNodeClick = (event, nodeId) => {
+//         event.stopPropagation(); // Prevent the click from bubbling up to the SVG canvas
+//         if (editMode === 'add-edge' || editMode === 'delete-node') {
+//             onNodeClick(nodeId);
+//         }
+//     };
+
+//     // Dynamically set the cursor style based on the current edit mode
+//     const cursorClass = {
+//         'add-node': 'cursor-crosshair',
+//         'add-edge': 'cursor-pointer',
+//         'delete-node': 'cursor-not-allowed',
+//         'idle': 'cursor-default',
+//     }[editMode];
+
+//     const markerMap = {
+//         'stroke-gray-600': 'url(#arrowhead-default)',
+//         'stroke-accent': 'url(#arrowhead-visited)',
+//         'stroke-purple-500': 'url(#arrowhead-potential)',
+//         'stroke-yellow-400': 'url(#arrowhead-active)',
+//     };
+
+//     return (
+//         <div className="flex items-center justify-center h-full w-full">
+//             <svg ref={svgRef} viewBox="0 0 600 400" className={`w-full h-full ${cursorClass}`} onClick={handleCanvasClick}>
+//                 <defs>
+//                     <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+//                         <stop offset="0%" style={{ stopColor: '#a855f7' }} /> 
+//                         <stop offset="100%" style={{ stopColor: '#6366f1' }} /> 
+//                     </linearGradient>
+
+//                     <filter id="dropshadow" height="130%">
+//                         <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+//                         <feOffset dx="1" dy="1" result="offsetblur"/>
+//                         <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+//                         <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+//                     </filter>
+                    
+//                     <marker id="arrowhead-default" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-gray-600" /></marker>
+//                     <marker id="arrowhead-visited" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-accent" /></marker>
+//                     <marker id="arrowhead-potential" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" fill="url(#arrowGradient)" /></marker>
+//                     <marker id="arrowhead-active" viewBox="0 -5 10 10" refX="10" refY="0" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,-5L10,0L0,5" className="fill-yellow-400" /></marker>
+//                 </defs>
+
+//                 <g filter="url(#dropshadow)">
+//                     {stepData.edges.map(edge => {
+//                         const from = stepData.nodes.find(n => n.id === edge.from);
+//                         const to = stepData.nodes.find(n => n.id === edge.to);
+//                         if (!from || !to) return null;
+                        
+//                         const edgeClass = getGraphEdgeState ? getGraphEdgeState(edge, stepData) : 'stroke-gray-600';
+//                         const markerUrl = markerMap[edgeClass] || markerMap['stroke-gray-600'];
+
+//                         let targetX = to.x;
+//                         let targetY = to.y;
+
+//                         // Only shorten the line if the graph is directed (to show the arrow)
+//                         if (isDirected) {
+//                             const dx = to.x - from.x;
+//                             const dy = to.y - from.y;
+//                             const length = Math.sqrt(dx * dx + dy * dy);
+//                             if (length > 0) {
+//                                 const unitX = dx / length;
+//                                 const unitY = dy / length;
+//                                 targetX = to.x - unitX * (NODE_RADIUS + 2);
+//                                 targetY = to.y - unitY * (NODE_RADIUS + 2);
+//                             }
+//                         }
+
+//                         return (
+//                             <line 
+//                                 key={`${edge.from}-${edge.to}`} 
+//                                 x1={from.x} y1={from.y} 
+//                                 x2={targetX} y2={targetY} 
+//                                 className={`transition-all duration-300 ${edgeClass}`} 
+//                                 strokeWidth="3" 
+//                                 markerEnd={isDirected ? markerUrl : null} // Conditionally apply arrows
+//                             />
+//                         );
+//                     })}
+//                 </g>
+
+//                 {stepData.nodes.map(node => {
+//                     const nodeClass = getGraphNodeState ? getGraphNodeState(node.id, stepData) : 'fill-gray-500';
+//                     const isEdgeStart = editMode === 'add-edge' && edgeStartNode === node.id;
+//                     return (
+//                         <g key={node.id} onClick={(e) => handleNodeClick(e, node.id)} style={{ filter: 'url(#dropshadow)' }}>
+//                             <circle cx={node.x} cy={node.y} r={NODE_RADIUS} className={`transition-all duration-300 ${nodeClass}`} stroke={isEdgeStart ? '#FBBF24' : 'white'} strokeWidth={isEdgeStart ? 3 : 2} />
+//                             <text x={node.x} y={node.y + 5} textAnchor="middle" className="fill-white font-bold text-sm select-none pointer-events-none">{node.id}</text>
+//                         </g>
+//                     );
+//                 })}
+//             </svg>
+//         </div>
+//     );
+// }
 
 
 // import React, { useRef } from 'react';

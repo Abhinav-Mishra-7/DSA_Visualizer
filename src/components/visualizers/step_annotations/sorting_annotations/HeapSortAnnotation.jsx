@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState, useLayoutEffect, useRef } from 'react';
-import { ElementPointer } from '../../shared/Pointers';
+import { ElementPointer } from '../../../shared/Pointers';
 
 export default function HeapSortAnnotation({ stepData, elementSize, gap, containerRef}) {
     const { message, root, largest, comparing, swapping } = stepData;

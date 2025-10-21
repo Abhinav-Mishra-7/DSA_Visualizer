@@ -69,21 +69,21 @@ export default function VisualizerLayout() {
     return (
         <div className="min-h-screen flex flex-col bg-background text-text-primary">
             <Navbar />
-            <main className="flex-grow flex flex-col mt-16 gap-6 lg:px-14 md:px-10 px-6 py-17">
+            <main className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
 
                 {/* --- HEADER SECTION --- */}
                 <header className="flex flex-col items-center text-center">
                     {/* Breadcrumbs (Kept at the top left for context) */}
-                    <div className="w-full flex items-center text-md text-text-secondary mb-3 gap-2.5">
+                    <div className="w-full flex items-center text-sm text-text-secondary mb-4 gap-2">
                         <Link to="/" className="hover:text-accent">Home</Link>
                         <ChevronRight size={16} />
-                        <Link to="/visualizers" className="hover:text-accent">Visualizers</Link>
+                        <Link to="/visualizers" className="hover:text-accent">Visualizer</Link>
                         <ChevronRight size={16} />
                         <span className="text-text-primary">{algorithm?.name}</span>
                     </div>
 
                     {/* Category Badge */}
-                    <div className="bg-accent text-white px-5 py-1 rounded-full text-lg font-semibold uppercase tracking-wider mb-5">
+                    <div className="bg-accent text-white px-5 py-1 rounded-full text-md font-medium uppercase tracking-wider mb-5">
                         {algorithm?.category}
                     </div>
 
@@ -96,17 +96,17 @@ export default function VisualizerLayout() {
                     <div className="mt-6 flex items-center gap-4">
                         <button 
                             onClick={handleCopyLink}
-                            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-text-secondary hover:text-accent hover:border-accent cursor-pointer transition-colors duration-200"
+                            className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer transition-colors duration-200"
                         >
-                            <CopyIcon size={16} />
-                            <span>{copyStatus}</span>
+                            <CopyIcon size={15} />
+                            <span className='text-sm'>{copyStatus}</span>
                         </button>
                         <button 
                             onClick={handleShare}
-                            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-text-secondary hover:text-accent hover:border-accent cursor-pointer  transition-colors duration-200"
+                            className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer  transition-colors duration-200"
                         >
-                            <Share2 size={16} />
-                            <span>Share</span>
+                            <Share2 size={15} />
+                            <span className='text-sm'>Share</span>
                         </button>
                     </div>
                 </header>
@@ -159,18 +159,18 @@ export default function VisualizerLayout() {
                                 {/* --- TABS & CONTENT CONTAINER --- */}
                                 <div className="flex-grow flex flex-col bg-card border border-border rounded-xl shadow-lg overflow-hidden min-h-[400px]">
                                     <div className="border-b border-border flex-shrink-0 flex">
-                                        <button onClick={() => setActiveTab('visualizer')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'visualizer' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:bg-accent/5'}`}>Visualizer</button>
-                                        <button onClick={() => setActiveTab('explanation')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 ${activeTab === 'explanation' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:bg-accent/5'}`}>Explanation</button>
+                                        <button onClick={() => setActiveTab('visualizer')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'visualizer' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Visualizer</button>
+                                        <button onClick={() => setActiveTab('explanation')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'explanation' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Explanation</button>
                                     </div>
 
                                     {/* Visualizer Tab Content */}
                                     {activeTab === 'visualizer' && (
-                                        <div className="flex-grow flex-col lg:flex-row py-6 px-4 gap-4 overflow-auto scrollbar-hide w-full">
-                                            <div className="flex-grow flex flex-col lg:flex-row py-6 gap-4 overflow-auto scrollbar-hide">
+                                        <div className="flex-grow flex-col lg:flex-row py-6 px-3 gap-3 overflow-auto scrollbar-hide w-full">
+                                            <div className="flex-grow flex flex-col lg:flex-row gap-3.5 overflow-auto scrollbar-hide">
                                                 <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
                                                 </div>
-                                                <div className="w-full lg:w-[350px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
+                                                <div className="w-full lg:w-[330px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
                                                     {ControlsComponent && <ControlsComponent {...allControlProps} />}
                                                 </div>
                                             </div>

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useLayoutEffect, useRef } from 'react';
-import MessageBox from "../../shared/MessageBox"
-import { SimplePointer , SteppedDualPointers } from '../../shared/Pointers';
+import MessageBox from "../../../shared/MessageBox"
+import { SimplePointer , SteppedDualPointers } from '../../../shared/Pointers';
 
 const PivotLabel = ({ index, elementSize, gap }) => {
     const leftPos = index * (elementSize + gap) + elementSize / 2;

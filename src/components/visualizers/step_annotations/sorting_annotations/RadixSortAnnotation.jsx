@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useLayoutEffect, useRef } from 'react';
-import MessageBox from '../../shared/MessageBox';
-import {AnnotationPointer} from "../../shared/Pointers" ;
+import MessageBox from '../../../shared/MessageBox';
+import {AnnotationPointer} from "../../../shared/Pointers" ;
 
 const FloatingDigit = ({ value, digitPlace, elementSize, gap, index }) => {
   const digit = Math.floor(value / digitPlace) % 10;

@@ -10,12 +10,12 @@ const MessageBox = ({ message, style, messageRef }) => {
     return (
         <div
             ref={messageRef}
-            className="absolute top-0 p-3 text-center rounded-lg bg-background-tertiary border border-border shadow-lg shadow-text-primary/15 text-sm text-text-primary whitespace-nowrap flex items-center gap-2"
+            className="absolute top-0 lg:p-3 p-2.5 text-center rounded-lg bg-background-tertiary border border-border shadow-lg shadow-text-primary/10 lg:text-sm md:text-xs text-xs/2 text-text-primary whitespace-nowrap flex items-center gap-2"
             style={style}
         >
             <Info size={16} className="text-blue-500 flex-shrink-0" />
             <span>
-                <span className="font-bold">{firstWord}</span>
+                <span className="lg:font-bold font-semibold">{firstWord}</span>
                 {restOfMessage && <span> {restOfMessage}</span>}
             </span>
         </div>

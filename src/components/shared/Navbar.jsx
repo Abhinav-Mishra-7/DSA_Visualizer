@@ -10,9 +10,8 @@ export default function Navbar() {
   const dispatch = useDispatch();
 
   const themeIcons = {
-    light: <Moon size={20} />,
-    dark: <Sun size={20} />,
-    neon: <Sparkles size={20} className="text-accent" />,
+    light: <Moon size={17} />,
+    dark: <Sun size={17} />,
   };
   
   const navLinks = [
@@ -22,14 +21,14 @@ export default function Navbar() {
 
   return (
     // The main floating container, using your existing style
-    <div className="fixed top-4 left-0 right-0 z-50 px-4">
+    <div className="fixed top-4 left-0 right-0 z-50 px-3.5">
       <nav className="max-w-full mx-auto bg-card/80 backdrop-blur-sm rounded-2xl border border-border shadow-lg transition-all duration-300 overflow-hidden">
-        <div className="flex items-center justify-between px-6 md:px-10 lg:px-19 py-3">
+        <div className="flex items-center justify-between px-5 md:px-10 lg:px-15 py-1.75">
           <Link to="/" className="flex items-baseline group">
-            <span className="text-xl md:text-2xl font-extrabold tracking-tight text-text-primary group-hover:text-accent transition-colors duration-300">
+            <span className="text-lg md:text-2xl font-extrabold tracking-tight text-text-primary group-hover:text-accent transition-colors duration-300">
               ALGO
             </span>
-            <span className="text-xl md:text-2xl font-extrabold text-accent">
+            <span className="text-lg md:text-2xl font-extrabold text-accent">
               Vision
             </span>
           </Link>
@@ -38,19 +37,19 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-4">
               {navLinks.map(link => (
-                <Link key={link.href} to={link.href} className="px-2 py-2 text-base font-medium text-text-primary hover:text-accent transition-colors duration-200">
+                <Link key={link.href} to={link.href} className="px-2 py-2 text-sm font-medium text-text-primary hover:text-accent transition-colors duration-200">
                   {link.label}
                 </Link>
               ))}
             </div>
             {/* YOUR CUSTOM LOGIN BUTTON - Preserved as requested */}
-            <Link to="" className="flex items-center gap-2 px-5 py-2 text-base font-semibold rounded-full bg-gradient-to-r from-accent-gradient-from to-accent-gradient-to text-white transition-all duration-300 hover:-translate-y-px hover:shadow-lg hover:shadow-accent/40">
-              <User size={16} />
+            <Link to="" className="flex items-center gap-2 px-5 py-1.75 text-sm font-semibold rounded-full bg-gradient-to-r from-accent-gradient-from to-accent-gradient-to text-white transition-all duration-300 hover:-translate-y-px hover:shadow-lg hover:shadow-accent/40">
+              <User size={15} />
               <span>Login / Signup</span>
             </Link>
             <button
               onClick={() => dispatch(toggleTheme())}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-card border-2 border-text-primary hover:border-accent transition-colors cursor-pointer"
+              className="w-8.5 h-8.5 flex items-center justify-center rounded-full bg-card border-2 border-text-primary hover:border-accent transition-colors cursor-pointer"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? themeIcons.dark : themeIcons.light}
