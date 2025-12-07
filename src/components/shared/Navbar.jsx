@@ -23,7 +23,7 @@ export default function Navbar() {
     // The main floating container, using your existing style
     <div className="fixed top-4 left-0 right-0 z-50 px-3.5">
       <nav className="max-w-full mx-auto bg-card/80 backdrop-blur-sm rounded-2xl border border-border shadow-lg transition-all duration-300 overflow-hidden">
-        <div className="flex items-center justify-between px-5 md:px-10 lg:px-15 py-1.75">
+        <div className="flex items-center justify-between px-5 md:px-10 lg:px-15 lg:py-2.5 py-1.75">
           <Link to="/" className="flex items-baseline group">
             <span className="text-lg md:text-2xl font-extrabold tracking-tight text-text-primary group-hover:text-accent transition-colors duration-300">
               ALGO

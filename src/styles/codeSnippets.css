@@ -1,0 +1,295 @@
+@import "tailwindcss";
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes bounce-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in-up 0.4s ease-out;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background-size: 2000px 100%;
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft 1s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 6s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-clip-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .backdrop-blur-custom {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+  }
+
+  .glow-effect {
+    @apply shadow-lg shadow-accent/30;
+  }
+
+  .hover-glow {
+    @apply hover:shadow-xl hover:shadow-accent/40 transition-all duration-300;
+  }
+
+  .line-hover {
+    @apply hover:bg-accent/10 transition-colors duration-200;
+  }
+
+  .tab-active-indicator {
+    @apply absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent;
+  }
+
+  .code-block {
+    @apply p-6 text-sm font-medium leading-relaxed whitespace-pre-wrap break-words;
+  }
+
+  .btn-base {
+    @apply px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply btn-base bg-gradient-to-r from-accent/80 to-accent text-white hover:from-accent hover:to-accent shadow-lg shadow-accent/20 hover:shadow-accent/40 hover:scale-105 transform;
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-card border border-border/50 text-text-primary/80 hover:text-accent hover:border-accent/50 transition-all duration-200;
+  }
+
+  .btn-toggle {
+    @apply btn-base transition-all duration-200;
+  }
+
+  .btn-toggle.active {
+    @apply bg-accent/20 text-accent border border-accent/30;
+  }
+
+  .btn-toggle:not(.active) {
+    @apply bg-background border border-border/30 text-text-secondary/70 hover:border-border/60;
+  }
+
+  .lang-tab {
+    @apply px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 relative overflow-hidden group;
+  }
+
+  .lang-tab.active {
+    @apply text-white shadow-lg shadow-accent/30 scale-105 transform;
+  }
+
+  .lang-tab:not(.active) {
+    @apply bg-card text-text-primary/80 border border-border/40 hover:border-accent/50 hover:bg-card/80 hover:text-accent;
+  }
+
+  .header-section {
+    @apply p-6 border-b border-border/50 bg-gradient-to-r from-background/80 to-card/40 backdrop-blur-sm;
+  }
+
+  .footer-section {
+    @apply p-4 bg-card/50 border-t border-border/30;
+  }
+
+  .info-badge {
+    @apply px-3 py-1 bg-background/60 rounded border border-border/30 hover:border-accent/50 transition-colors;
+  }
+
+  .code-line-number {
+    @apply text-text-secondary/40 select-none font-mono text-xs leading-relaxed cursor-pointer transition-colors duration-200 hover:text-accent/60;
+  }
+
+  .icon-bounce {
+    @apply group-hover:animate-bounce transition-transform duration-300;
+  }
+}
+
+@media (max-width: 640px) {
+  .hide-mobile {
+    @apply hidden;
+  }
+
+  .p-responsive {
+    @apply p-3 md:p-4 lg:p-6;
+  }
+
+  .text-responsive {
+    @apply text-xs md:text-sm lg:text-base;
+  }
+
+  .flex-responsive {
+    @apply flex-col md:flex-row;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .code-block {
+    @apply text-text-primary/85;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/30 border border-white/40;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .code-block {
+    @apply text-text-primary/85;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/5 border border-white/10;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .tab-active-indicator {
+    @apply h-2 shadow-md;
+  }
+
+  .lang-tab {
+    @apply border-2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-fade-in,
+  .animate-glow-pulse,
+  .animate-shimmer,
+  .animate-bounce-soft,
+  .animate-gradient-shift {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .btn-base,
+  .header-section,
+  .footer-section {
+    @apply hidden;
+  }
+
+  .code-block {
+    @apply break-inside-avoid;
+  }
+}
+
+.gradient-c {
+  @apply bg-gradient-to-r from-blue-500 to-blue-600;
+}
+
+.gradient-cpp {
+  @apply bg-gradient-to-r from-blue-600 to-cyan-600;
+}
+
+.gradient-java {
+  @apply bg-gradient-to-r from-orange-500 to-red-500;
+}
+
+.gradient-python {
+  @apply bg-gradient-to-r from-yellow-500 to-blue-500;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 123, 255, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 123, 255, 0.8);
+}
+
+.custom-scrollbar {
+  scrollbar-color: rgba(0, 123, 255, 0.5) rgba(0, 0, 0, 0.1);
+  scrollbar-width: thin;
+}

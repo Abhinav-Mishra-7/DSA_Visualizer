@@ -1,5 +1,6 @@
 /* src/index.css */
 @import "tailwindcss";
+/* @import './styles/codeSnippets.css'; */
 
 /* --- THEME DEFINITIONS (Your code) --- */
 :root {

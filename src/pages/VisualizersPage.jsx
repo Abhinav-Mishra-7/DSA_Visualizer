@@ -30,14 +30,14 @@ export default function VisualizersPage() {
           </p>
         </div>
 
-        <div className="relative z-40 bg-background/80 backdrop-blur-md py-5 mb-6 animate-[fade-in-up_0.7s_ease-out]">
+        <div className="relative z-40 bg-background/80 backdrop-blur-md py-4 mb-6 animate-[fade-in-up_0.7s_ease-out]">
             <div className="relative mb-6 px-10">
                 <input
                     type="text"
                     placeholder="Search for an algorithm..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 bg-card border border-border rounded-xl text-text-primary focus:ring-1/2 focus:ring-accent focus:border-accent transition-all outline-none shadow-sm text-sm"
+                    className="w-full pl-8 pr-3 py-3 bg-card border border-border rounded-xl text-text-primary focus:ring-1/2 focus:ring-accent focus:border-accent transition-all outline-none shadow-sm text-sm"
                 />
                 <Search className="absolute left-12 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
             </div>
