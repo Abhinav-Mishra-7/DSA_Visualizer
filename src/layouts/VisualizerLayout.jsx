@@ -144,7 +144,10 @@ export default function VisualizerLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-text-primary">
         <Navbar/>
-      <main ref={mainRef} className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
+      <main
+        ref={mainRef}
+        className="flex-grow flex flex-col mt-11 gap-4 lg:gap-6 lg:px-12 md:px-8 px-3 sm:px-5 py-4 sm:py-6 lg:py-8 min-h-0"
+      >
         {/* HEADER */}
         <header className="flex flex-col items-center text-center">
           <div className="w-full flex items-center text-sm text-text-secondary mb-6 gap-2 ">
@@ -267,10 +270,13 @@ export default function VisualizerLayout() {
             };
 
             return (
-              <div className="flex-grow flex flex-col gap-6 min-h-0">
-                <div className="flex-grow flex flex-col bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden min-h-[400px] backdrop-blur-sm ">
+              <div className="flex-grow flex flex-col gap-4 min-h-0">
+                <div className="flex-grow min-h-0 flex flex-col bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm">
                   {/* TABS */}
-                  <div ref={tabsRef} className="border-b border-border/50 flex-shrink-0 flex bg-gradient-to-r from-background/50 to-card/50 p-1.5 gap-1 z-40">
+                  <div
+                    ref={tabsRef}
+                    className="border-b border-border/50 flex-shrink-0 flex overflow-x-auto scrollbar-hide bg-gradient-to-r from-background/50 to-card/50 p-1.5 gap-1 z-40"
+                  >
                     {tabs.map(tab => {
                       const Icon = tab.icon;
                       const isActive = activeTab === tab.id;
@@ -278,7 +284,7 @@ export default function VisualizerLayout() {
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`flex-1 relative group px-2 py-2 font-semibold transition-all duration-300 flex flex-col items-center justify-center gap-1.5 overflow-hidden cursor-pointer ${
+                          className={`relative group shrink-0 min-w-[112px] sm:min-w-[132px] md:flex-1 px-2 sm:px-3 py-2 font-semibold transition-all duration-300 flex flex-col items-center justify-center gap-1 overflow-hidden rounded-lg cursor-pointer ${
                             isActive
                               ? 'text-accent'
                               : 'text-text-primary/70 hover:text-text-primary'
@@ -295,12 +301,12 @@ export default function VisualizerLayout() {
                             }`}
                           />
 
-                          <span className="text-sm font-semibold">
+                          <span className="text-xs sm:text-sm font-semibold text-center leading-tight">
                             {tab.label}
                           </span>
 
                           <span
-                            className={`text-xs transition-all duration-300 ${
+                            className={`hidden lg:block text-[11px] text-center transition-all duration-300 ${
                               isActive
                                 ? 'text-accent/70 opacity-100'
                                 : 'text-text-secondary/50 opacity-0 group-hover:opacity-100'
@@ -368,7 +374,7 @@ export default function VisualizerLayout() {
                     </div>
                   )} */}
                   {activeTab === 'explanation' && (
-                    <div className="flex-grow flex justify-center md:p-4 lg:p-8 p-2 overflow-y-auto">
+                    <div className="flex-grow min-h-0 flex justify-center md:p-4 lg:p-8 p-2 overflow-y-auto">
                       {ExplanationComponent && <ExplanationComponent />}
                     </div>
                   )}
@@ -380,7 +386,7 @@ export default function VisualizerLayout() {
 
                   {/* Quiz Tab */}
                   <div
-                    className={activeTab === 'quiz' ? 'flex-grow flex' : 'hidden'}
+                    className={activeTab === 'quiz' ? 'flex-grow min-h-0 flex' : 'hidden'}
                   >
                     <QuizComponent algorithm={algorithm} isActive={activeTab === 'quiz'} />
                   </div>

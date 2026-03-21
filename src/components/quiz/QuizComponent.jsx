@@ -76,7 +76,6 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
 
         const response = await fetch(url);
         const data = await response.json();
-        console.log(data);
         if (!response.ok) {
           throw new Error(data?.message || `HTTP ${response.status}`);
         }
@@ -256,13 +255,13 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
   }
 
   return (
-    <div className="flex-grow flex flex-col h-full bg-gradient-to-br from-background via-background to-card/30 relative overflow-y-auto overflow-x-hidden">
+    <div className="flex-grow flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-card/30 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 animate-pulse pointer-events-none opacity-30" />
 
-      <div className="relative z-10 flex flex-col h-full">
+      <div className="relative z-10 flex flex-col h-full min-h-0">
         {/* HEADER */}
-        <div className="pt-2 px-6 border-b border-border/50 bg-gradient-to-r from-background/80 to-card/40 backdrop-blur-sm flex justify-between items-center flex-wrap gap-4">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="pt-3 px-3 sm:px-4 md:px-6 border-b border-border/50 bg-gradient-to-r from-background/80 to-card/40 backdrop-blur-sm flex justify-between items-center flex-wrap gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
             <div className="p-3 bg-gradient-to-br from-accent/40 to-accent/5 rounded-xl">
               <Brain size={24} className="text-accent" />
             </div>
@@ -276,7 +275,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-text-secondary/90 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs text-text-secondary/90 flex-wrap mb-2">
             <div className="px-3 py-1 bg-background/60 rounded border border-border/30">
               Question {totalQuestions ? currentIndex + 1 : 0} / {totalQuestions || 0}
             </div>
@@ -331,8 +330,8 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
           </div>
         ) : !showResults ? (
-          <div className="flex-grow flex flex-col justify-between p-3.5 gap-6">
-            <div className="max-w-5xl min-h-[360px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-4 md:p-4 backdrop-blur-sm">
+          <div className="flex-grow min-h-0 flex flex-col justify-between p-2.5 sm:p-3.5 gap-4">
+            <div className="max-w-5xl w-full min-h-[280px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
               <h2 className="text-lg md:text-2xl font-bold text-text-primary mb-4 leading-relaxed">
                 {question?.question}
               </h2>
@@ -364,7 +363,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
 
             {/* NAVIGATION BUTTONS */}
-            <div className="flex flex-col gap-3 max-w-2xl mx-auto w-full">
+            <div className="flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
               <div className="flex justify-between items-center gap-4">
                 <button
                   onClick={handlePrevious}
@@ -414,16 +413,16 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
           </div>
         ) : !showDetailedReview ? (
-          <div className="flex-grow flex items-center justify-center px-3 py-4">
+          <div className="flex-grow min-h-0 overflow-y-auto flex items-center justify-center px-2.5 sm:px-3 py-3 sm:py-4">
             {/* SCORE SUMMARY VIEW */}
             <div className="max-w-2xl w-full">
-              <div className="bg-gradient-to-br from-card/80 to-card/40 border border-accent/30 rounded-2xl p-4 md:p-6 text-center shadow-lg relative overflow-hidden">
+              <div className="bg-gradient-to-br from-card/80 to-card/40 border border-accent/30 rounded-2xl pt-5 sm:pt-6 pb-4 px-3 sm:px-4 md:px-6 text-center shadow-lg relative overflow-hidden">
                 {/* Animated background elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -ml-16 -mb-16 animate-pulse" />
 
                 <div className="relative z-10">
-                  <div className="mx-auto mb-2 md:mb-3 w-16 h-16 rounded-full bg-gradient-to-br from-accent/40 to-accent/10 flex items-center justify-center animate-bounce">
+                  <div className="mx-auto mb-2 md:mb-3 w-16 h-16 rounded-full bg-gradient-to-br from-accent/40 to-accent/10 flex items-center justify-center">
                     <Brain size={32} className="text-accent" />
                   </div>
 
@@ -435,7 +434,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   </p>
 
                   {/* Score container with progress bar */}
-                  <div className="grid grid-cols-2 md:grid-cols-2 gap-3 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     {/* Score Display */}
                     <div className="bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/40 rounded-lg p-3">
                       <p className="text-xs uppercase tracking-widest font-bold text-text-secondary/90 mb-1">
@@ -505,7 +504,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                     </div>
                     <div className="w-full bg-text-secondary/10 rounded-full h-2 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-accent to-purple-500 rounded-full transition-all duration-1000"
+                        className="h-full bg-gradient-to-r from-accent to-blue-500 rounded-full transition-all duration-1000"
                         style={{
                           width: scoreCorrect && totalQuestions ? `${(scoreCorrect / totalQuestions) * 100}%` : '0%'
                         }}
@@ -525,20 +524,20 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   </p>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col md:flex-row gap-2 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
                     <button
                       onClick={handleReviewAnswers}
-                      className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-accent via-accent to-purple-500 text-white text-xs md:text-sm font-bold shadow-md shadow-accent/40 hover:shadow-accent/60 hover:scale-[1.02] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-accent via-accent/90 to-blue-300 text-white text-xs md:text-sm font-bold hover:shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
                     >
                       <span>📋</span>
-                      <span className="hidden sm:inline">Review</span>
+                      <span>Review</span>
                     </button>
                     <button
                       onClick={handleReset}
-                      className="flex-1 px-4 py-2 rounded-lg border border-accent/50 text-accent hover:bg-accent/10 hover:border-accent text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-accent/50 text-accent hover:bg-accent/10 hover:border-accent text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
                     >
                       <span>🔄</span>
-                      <span className="hidden sm:inline">Retry</span>
+                      <span>Retry</span>
                     </button>
                   </div>
                 </div>
@@ -546,8 +545,8 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
           </div>
         ) : (
-          <div className="flex-grow flex flex-col justify-between p-6 md:p-5 gap-6">
-            <div className="max-w-5xl min-h-[360px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-4 md:p-5 backdrop-blur-sm">
+          <div className="flex-grow min-h-0 flex flex-col justify-between p-3 sm:p-4 md:p-5 gap-4">
+            <div className="max-w-5xl w-full min-h-[280px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-3 sm:p-4 md:p-5 backdrop-blur-sm overflow-y-auto">
               <h2 className="text-lg md:text-2xl font-bold text-text-primary mb-6 leading-relaxed">
                 {question?.question}
               </h2>
@@ -591,7 +590,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
             </div>
 
             {/* NAVIGATION BUTTONS */}
-            <div className="flex flex-col gap-3 max-w-2xl mx-auto w-full">
+            <div className="flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
               <div className="flex justify-between items-center gap-4">
                 <button
                   onClick={handlePrevious}
@@ -622,7 +621,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                 <button
                   onClick={handleReset}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm font-semibold shadow-md shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm font-semibold hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-200 cursor-pointer"
                 >
                   <RefreshCw size={16} />
                   Try Again
