@@ -29,10 +29,12 @@ export default function VisualizerLayout() {
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTab, setActiveTab] = useState('visualizer');
   const [copyStatus, setCopyStatus] = useState('Copy Link');
-  const [navbarOpacity, setNavbarOpacity] = useState(1);
   const [navbarTranslate, setNavbarTranslate] = useState(0);
+  const [navbarOpacity, setNavbarOpacity] = useState(1);
   const mainRef = useRef(null);
   const tabsRef = useRef(null);
+  const scrollRafRef = useRef(null);
+  const navStateRef = useRef({ translate: 0, opacity: 1 });
 
   useEffect(() => {
     setIsAnimating(false);
@@ -40,14 +42,23 @@ export default function VisualizerLayout() {
     setActiveTab('visualizer');
     setCopyStatus('Copy Link');
     setNavbarTranslate(0);
+    setNavbarOpacity(1);
+    navStateRef.current = { translate: 0, opacity: 1 };
   }, [slug]);
 
   // Handle navbar scroll up with tabs component
   useEffect(() => {
-    const handleScroll = () => {
+    const easeInOutCubic = (t) => {
+      if (t <= 0) return 0;
+      if (t >= 1) return 1;
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const updateNavbarFromScroll = () => {
+      scrollRafRef.current = null;
       if (!tabsRef.current) return;
 
-      const navbarHeight = 44; // navbar height in pixels
+      const navbarHeight = 72; // navbar + margin envelope
       const tabsRect = tabsRef.current.getBoundingClientRect();
       const tabsDistanceFromTop = tabsRect.top;
 
@@ -55,21 +66,45 @@ export default function VisualizerLayout() {
       const moveStartDistance = navbarHeight + 100;
       const moveEndDistance = navbarHeight;
 
-      if (tabsDistanceFromTop > moveStartDistance) {
-        // Tabs is far, navbar stays at top
-        setNavbarTranslate(0);
-      } else if (tabsDistanceFromTop < moveEndDistance) {
-        // Tabs has reached navbar, navbar is fully moved up
-        setNavbarTranslate(-navbarHeight);
-      } else {
-        // Tabs is approaching navbar, move navbar up proportionally
-        const progress = (moveStartDistance - tabsDistanceFromTop) / (moveStartDistance - moveEndDistance);
-        setNavbarTranslate(-navbarHeight * progress);
-      }
+      const rawProgress =
+        (moveStartDistance - tabsDistanceFromTop) /
+        (moveStartDistance - moveEndDistance);
+      const clampedProgress = Math.max(0, Math.min(1, rawProgress));
+      const progress = easeInOutCubic(clampedProgress);
+
+      const targetTranslate = -navbarHeight * progress;
+      const targetOpacity = 1 - progress;
+
+      const prev = navStateRef.current;
+      const deltaTranslate = Math.abs(prev.translate - targetTranslate);
+      const deltaOpacity = Math.abs(prev.opacity - targetOpacity);
+
+      // Dead-zone to avoid jittery state updates on tiny scroll deltas.
+      if (deltaTranslate < 0.35 && deltaOpacity < 0.008) return;
+
+      navStateRef.current = {
+        translate: targetTranslate,
+        opacity: targetOpacity
+      };
+      setNavbarTranslate(targetTranslate);
+      setNavbarOpacity(targetOpacity);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = window.requestAnimationFrame(updateNavbarFromScroll);
+    };
+
+    updateNavbarFromScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
+    };
   }, []);
 
   const visualizerType = algorithm?.visualizerType || 'default';
@@ -143,10 +178,16 @@ export default function VisualizerLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-text-primary">
-        <Navbar/>
+      <Navbar
+        style={{
+          transform: `translateY(${navbarTranslate}px)`,
+          opacity: navbarOpacity,
+          pointerEvents: navbarOpacity < 0.2 ? 'none' : 'auto'
+        }}
+      />
       <main
         ref={mainRef}
-        className="flex-grow flex flex-col mt-11 gap-4 lg:gap-6 lg:px-12 md:px-8 px-3 sm:px-5 py-4 sm:py-6 lg:py-8 min-h-0"
+        className="flex-grow flex flex-col mt-11 gap-4 lg:gap-6 lg:px-12 md:px-8 px-3 sm:px-5 py-8 sm:py-10 lg:py-12 min-h-0"
       >
         {/* HEADER */}
         <header className="flex flex-col items-center text-center">
