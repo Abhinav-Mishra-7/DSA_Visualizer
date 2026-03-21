@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { Sun, Moon, Sparkles, User, Menu, X } from 'lucide-react';
 import { toggleTheme } from '../../slices/uiSlice';
 
-export default function Navbar() {
+export default function Navbar({ className = '', style = {} }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const theme = useSelector((state) => state.ui.theme);
   const dispatch = useDispatch();
@@ -21,7 +21,10 @@ export default function Navbar() {
 
   return (
     // The main floating container, using your existing style
-    <div className="fixed top-4 left-0 right-0 z-50 px-3.5">
+    <div
+      className={`fixed top-4 left-0 right-0 z-50 px-3.5 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${className}`}
+      style={style}
+    >
       <nav className="max-w-full mx-auto bg-card/80 backdrop-blur-sm rounded-2xl border border-border shadow-lg transition-all duration-300 overflow-hidden">
         <div className="flex items-center justify-between px-5 md:px-10 lg:px-15 lg:py-2.5 py-1.75">
           <Link to="/" className="flex items-baseline group">
