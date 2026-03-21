@@ -245,3 +245,13 @@ html.neon body::before {
     scrollbar-width: none;
   }
 }
+
+/* Hide scrollbar but keep scroll behaviour */
+.scrollbar-hide {
+  -ms-overflow-style: none;   /* IE and Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;              /* Chrome, Safari, Opera */
+}

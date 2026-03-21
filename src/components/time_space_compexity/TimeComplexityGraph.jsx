@@ -223,7 +223,7 @@ const TimeComplexityGraph = ({ complexities, maxN = 50, title = "Time Complexity
                                                         />
                                                         <span className="truncate">{result.label}:</span>
                                                     </span> 
-                                                    <code className="font-mono text-text-primary whitespace-nowrap">
+                                                    <code className="text-text-primary whitespace-nowrap">
                                                         {result.operations.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                                     </code>
                                                 </li>
