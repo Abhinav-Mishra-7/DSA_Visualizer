@@ -200,6 +200,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
 
       setResultJson(data);
       setShowResults(true);
+      setShowDetailedReview(false);
       setCurrentIndex(0);
     } catch (err) {
       setQuizError(err?.message || 'Quiz verification failed');
@@ -230,6 +231,11 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
   const handleReviewAnswers = () => {
     setCurrentIndex(0);
     setShowDetailedReview(true);
+  };
+
+  const handleBackToScore = () => {
+    setCurrentIndex(0);
+    setShowDetailedReview(false);
   };
 
   const totalQuestions = questions.length;
@@ -416,7 +422,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
           <div className="flex-grow min-h-0 overflow-y-auto flex items-center justify-center px-2.5 sm:px-3 py-3 sm:py-4">
             {/* SCORE SUMMARY VIEW */}
             <div className="max-w-2xl w-full">
-              <div className="bg-gradient-to-br from-card/80 to-card/40 border border-accent/30 rounded-2xl pt-5 sm:pt-6 pb-4 px-3 sm:px-4 md:px-6 text-center shadow-lg relative overflow-hidden">
+              <div className="quiz-score-card rounded-2xl pt-5 sm:pt-6 pb-4 px-3 sm:px-4 md:px-6 text-center shadow-lg relative overflow-hidden">
                 {/* Animated background elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -ml-16 -mb-16 animate-pulse" />
@@ -426,7 +432,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                     <Brain size={32} className="text-accent" />
                   </div>
 
-                  <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-accent via-text-primary to-accent bg-clip-text text-transparent mb-1">
+                  <h2 className="text-2xl md:text-3xl font-bold quiz-score-title mb-1">
                     Awesome!
                   </h2>
                   <p className="text-xs md:text-sm text-text-secondary/90 mb-3 font-medium">
@@ -436,7 +442,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   {/* Score container with progress bar */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     {/* Score Display */}
-                    <div className="bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/40 rounded-lg p-3">
+                    <div className="quiz-score-panel rounded-lg p-3">
                       <p className="text-xs uppercase tracking-widest font-bold text-text-secondary/90 mb-1">
                         Score
                       </p>
@@ -460,7 +466,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                     </div>
 
                     {/* Performance Level */}
-                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/30 rounded-lg p-3 flex flex-col justify-center items-center">
+                    <div className="quiz-stars-panel rounded-lg p-3 flex flex-col justify-center items-center">
                       <p className="text-xs uppercase tracking-widest font-bold text-text-secondary/90 mb-1">
                         Stars
                       </p>
@@ -527,14 +533,14 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
                     <button
                       onClick={handleReviewAnswers}
-                      className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-accent via-accent/90 to-blue-300 text-white text-xs md:text-sm font-bold hover:shadow-md hover:shadow-blue-200 hover:scale-[1.02] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 px-4 py-2.5 rounded-lg quiz-primary-btn text-white text-xs md:text-sm font-bold hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
                     >
                       <span>📋</span>
                       <span>Review</span>
                     </button>
                     <button
                       onClick={handleReset}
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-accent/50 text-accent hover:bg-accent/10 hover:border-accent text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 px-4 py-2.5 rounded-lg quiz-secondary-btn text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
                     >
                       <span>🔄</span>
                       <span>Retry</span>
@@ -557,7 +563,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   const isSelected = idx === computedSelectedOptionIndex;
 
                   let stateClass =
-                    'border-border/50 hover:border-purple-500/60 hover:bg-purple-500/5';
+                    'border-border/50 hover:border-blue-500/60 hover:bg-blue-500/5';
                   if (isCorrect) stateClass = 'border-green-500 bg-green-500/10';
                   else if (isSelected && !isCorrect)
                     stateClass = 'border-red-500 bg-red-500/10';
@@ -617,7 +623,13 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                 </button>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleBackToScore}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-accent/40 text-accent text-xs md:text-sm font-semibold hover:bg-accent/10 hover:border-accent transition-all duration-200 cursor-pointer"
+                >
+                  View Score
+                </button>
                 <button
                   onClick={handleReset}
                   disabled={isSubmitting}
