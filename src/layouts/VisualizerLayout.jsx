@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router';
-import { ChevronRight, Link as CopyIcon, Share2, Zap, BookOpen, Code2, Brain } from 'lucide-react';
+import { ChevronRight, Link as CopyIcon, Share2 , Bot, Zap, BookOpen, Code2, Brain } from 'lucide-react';
 import { allAlgorithms } from '../data/algorithms';
 import Navbar from '../components/shared/Navbar';
 import AlgorithmProvider from '../components/visualizers/AlgorithmProvider';
@@ -8,6 +8,7 @@ import ArrayStepLog from '../components/visualizers/steplogs/ArrayStepLog';
 import GenericStepLog from '../components/visualizers/steplogs/GenericStepLog';
 import CodeSnippets from '../components/codes/CodeSnippets';
 import QuizComponent from '../components/quiz/QuizComponent';
+import ChatWithAI from '../components/chat/ChatWithAI';
 
 const stepLogMap = {
   array: ArrayStepLog,
@@ -28,13 +29,48 @@ export default function VisualizerLayout() {
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTab, setActiveTab] = useState('visualizer');
   const [copyStatus, setCopyStatus] = useState('Copy Link');
+  const [navbarOpacity, setNavbarOpacity] = useState(1);
+  const [navbarTranslate, setNavbarTranslate] = useState(0);
+  const mainRef = useRef(null);
+  const tabsRef = useRef(null);
 
   useEffect(() => {
     setIsAnimating(false);
     setCurrentStep(0);
     setActiveTab('visualizer');
     setCopyStatus('Copy Link');
+    setNavbarTranslate(0);
   }, [slug]);
+
+  // Handle navbar scroll up with tabs component
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!tabsRef.current) return;
+
+      const navbarHeight = 44; // navbar height in pixels
+      const tabsRect = tabsRef.current.getBoundingClientRect();
+      const tabsDistanceFromTop = tabsRect.top;
+
+      // When tabs reaches navbar bottom, start moving navbar up
+      const moveStartDistance = navbarHeight + 100;
+      const moveEndDistance = navbarHeight;
+
+      if (tabsDistanceFromTop > moveStartDistance) {
+        // Tabs is far, navbar stays at top
+        setNavbarTranslate(0);
+      } else if (tabsDistanceFromTop < moveEndDistance) {
+        // Tabs has reached navbar, navbar is fully moved up
+        setNavbarTranslate(-navbarHeight);
+      } else {
+        // Tabs is approaching navbar, move navbar up proportionally
+        const progress = (moveStartDistance - tabsDistanceFromTop) / (moveStartDistance - moveEndDistance);
+        setNavbarTranslate(-navbarHeight * progress);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const visualizerType = algorithm?.visualizerType || 'default';
   const StepLog = stepLogMap[visualizerType] || stepLogMap.default;
@@ -96,13 +132,19 @@ export default function VisualizerLayout() {
       label: 'Quiz Practice',
       icon: Brain,
       description: 'Test your algorithm knowledge'
+    },
+    {
+      id: 'chat',
+      label: 'Chat with AI',
+      icon: Bot,
+      description: 'Get AI guidance'
     }
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-text-primary">
-      <Navbar />
-      <main className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
+        <Navbar/>
+      <main ref={mainRef} className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
         {/* HEADER */}
         <header className="flex flex-col items-center text-center">
           <div className="w-full flex items-center text-sm text-text-secondary mb-6 gap-2 ">
@@ -228,7 +270,7 @@ export default function VisualizerLayout() {
               <div className="flex-grow flex flex-col gap-6 min-h-0">
                 <div className="flex-grow flex flex-col bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden min-h-[400px] backdrop-blur-sm ">
                   {/* TABS */}
-                  <div className="border-b border-border/50 flex-shrink-0 flex bg-gradient-to-r from-background/50 to-card/50 p-1 gap-1">
+                  <div ref={tabsRef} className="border-b border-border/50 flex-shrink-0 flex bg-gradient-to-r from-background/50 to-card/50 p-1.5 gap-1 z-40">
                     {tabs.map(tab => {
                       const Icon = tab.icon;
                       const isActive = activeTab === tab.id;
@@ -281,20 +323,20 @@ export default function VisualizerLayout() {
                   {activeTab === 'visualizer' && (
                     <div className="flex-grow flex-col lg:flex-row py-6 px-3 gap-3 overflow-auto scrollbar-hide w-full animate-fade-in">
                       <div className="flex-grow flex flex-col lg:flex-row gap-3.5 overflow-auto scrollbar-hide">
-                        <div className="flex-grow h-[300px] lg:h-auto bg-gradient-to-br from-background/50 to-background rounded-xl p-3 border border-border/30 hover:border-accent/30 transition-all duration-300 shadow-inner">
+                        <div className="flex-grow h-[300px] lg:h-auto bg-gradient-to-br from-background/50 to-background rounded-xl p-3 border border-border/30 transition-all duration-300 shadow-inner">
                           {CanvasComponent && (
                             <CanvasComponent {...allCanvasProps} />
                           )}
                         </div>
 
-                        <div className="w-full lg:w-[330px] flex-shrink-0 overflow-y-auto bg-gradient-to-br from-background/50 to-background rounded-xl border border-border/30 hover:border-accent/30 transition-all duration-300">
+                        <div className="w-full lg:w-[330px] flex-shrink-0 overflow-y-auto bg-gradient-to-br from-background/50 to-background rounded-xl border border-border/30 transition-all duration-300">
                           {ControlsComponent && (
                             <ControlsComponent {...allControlProps} />
                           )}
                         </div>
                       </div>
 
-                      <div className="h-48 lg:h-auto flex-shrink-0 bg-card border border-border/30 rounded-xl flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:border-accent/30">
+                      <div className="h-48 mt-5 lg:h-auto flex-shrink-0 bg-card border border-border/30 rounded-xl flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                         <h3 className="p-4 font-bold border-b border-border/30 text-text-primary flex-shrink-0 bg-gradient-to-r from-card to-card/50 flex items-center gap-2">
                           <Zap size={16} className="text-accent" />
                           Detailed Steps
@@ -337,7 +379,23 @@ export default function VisualizerLayout() {
                   )}
 
                   {/* Quiz Tab */}
-                 {activeTab === 'quiz' && <QuizComponent algorithm={algorithm} />}
+                  <div
+                    className={activeTab === 'quiz' ? 'flex-grow flex' : 'hidden'}
+                  >
+                    <QuizComponent algorithm={algorithm} isActive={activeTab === 'quiz'} />
+                  </div>
+
+                 {/* Chat with AI */}
+                  {activeTab === 'chat' && (
+                    <div className="flex-grow flex flex-col p-3 overflow-hidden h-[calc(100vh-64px)]">
+                      <ChatWithAI
+                        algorithm={algorithm}
+                        userEmail={null}  
+                        userName={null}   
+                        isPremium={false}
+                      />
+                    </div>
+                  )}
 
                 </div>
               </div>
@@ -348,442 +406,3 @@ export default function VisualizerLayout() {
     </div>
   );
 }
-
-
-
-// import { useState, useEffect, useMemo } from 'react';
-// import { useParams, Link } from 'react-router';
-// import { ChevronRight, Link as CopyIcon, Share2 } from 'lucide-react';
-// import { allAlgorithms } from '../data/algorithms';
-// import Navbar from '../components/shared/Navbar';
-// import AlgorithmProvider from '../components/visualizers/AlgorithmProvider';
-// import ArrayStepLog from '../components/visualizers/steplogs/ArrayStepLog';
-// import GenericStepLog from '../components/visualizers/steplogs/GenericStepLog';
-// import CodeSnippets from '../components/codes/CodeSnippets'; 
-
-// const stepLogMap = {
-//     array: ArrayStepLog,
-//     graph: GenericStepLog,
-//     tree: GenericStepLog,
-//     default: GenericStepLog,
-// };
-
-// export default function VisualizerLayout() {
-//     const { slug } = useParams();
-//     const algorithm = useMemo(() => allAlgorithms.find(a => a.slug === slug), [slug]);
-//     const [isAnimating, setIsAnimating] = useState(false);
-//     const [speed, setSpeed] = useState(500);
-//     const [currentStep, setCurrentStep] = useState(0);
-//     const [activeTab, setActiveTab] = useState('visualizer');
-    
-//     // --- NEW: State for copy button text ---
-//     const [copyStatus, setCopyStatus] = useState('Copy Link');
-
-
-//     useEffect(() => {
-//         setIsAnimating(false);
-//         setCurrentStep(0);
-//         setActiveTab('visualizer');
-//         setCopyStatus('Copy Link'); // Reset copy button on slug change
-//     }, [slug]);
-
-
-//     const visualizerType = algorithm?.visualizerType || 'default';
-//     const StepLog = stepLogMap[visualizerType] || stepLogMap.default;
-
-
-//     // --- Handler for the "Copy Link" button ---
-//     const handleCopyLink = () => {
-//         navigator.clipboard.writeText(window.location.href).then(() => {
-//             setCopyStatus('Copied!');
-//             setTimeout(() => setCopyStatus('Copy Link'), 1000); // Reset after 2 seconds
-//         }).catch(err => {
-//             console.error('Failed to copy text: ', err);
-//             setCopyStatus('Failed to copy');
-//             setTimeout(() => setCopyStatus('Copy Link'), 1000);
-//         });
-//     };
-
-
-//     // --- Handler for the "Share" button using Web Share API ---
-//     const handleShare = async () => {
-//         const shareData = {
-//             title: `${algorithm?.name} Visualizer`,
-//             text: `Check out this interactive visualizer for the ${algorithm?.name} algorithm!`,
-//             url: window.location.href,
-//         };
-//         if (navigator.share) {
-//             try {
-//                 await navigator.share(shareData);
-//             } catch (err) {
-//                 console.error("Error sharing:", err);
-//             }
-//         } else {
-//             // Fallback for browsers that don't support Web Share API
-//             handleCopyLink(); // Copy link as a fallback
-//         }
-//     };
-
-
-//     return (
-//         <div className="min-h-screen flex flex-col bg-background text-text-primary">
-//             <Navbar />
-//             <main className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
-
-
-//                 {/* --- HEADER SECTION --- */}
-//                 <header className="flex flex-col items-center text-center">
-//                     {/* Breadcrumbs (Kept at the top left for context) */}
-//                     <div className="w-full flex items-center text-sm text-text-secondary mb-4 gap-2">
-//                         <Link to="/" className="hover:text-accent">Home</Link>
-//                         <ChevronRight size={16} />
-//                         <Link to="/visualizers" className="hover:text-accent">Visualizer</Link>
-//                         <ChevronRight size={16} />
-//                         <span className="text-text-primary">{algorithm?.name}</span>
-//                     </div>
-
-
-//                     {/* Category Badge */}
-//                     <div className="bg-accent text-white px-5 py-1 rounded-full text-md font-medium uppercase tracking-wider mb-5">
-//                         {algorithm?.category}
-//                     </div>
-
-
-//                     {/* Main Title */}
-//                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight">
-//                         {algorithm?.name || "Visualizer"}
-//                     </h1>
-                    
-//                     {/* Action Buttons */}
-//                     <div className="mt-6 flex items-center gap-4">
-//                         <button 
-//                             onClick={handleCopyLink}
-//                             className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer transition-colors duration-200"
-//                         >
-//                             <CopyIcon size={15} />
-//                             <span className='text-sm'>{copyStatus}</span>
-//                         </button>
-//                         <button 
-//                             onClick={handleShare}
-//                             className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer  transition-colors duration-200"
-//                         >
-//                             <Share2 size={15} />
-//                             <span className='text-sm'>Share</span>
-//                         </button>
-//                     </div>
-//                 </header>
-
-
-//                 <div className="h-0.5 w-full bg-text-primary/50 mt-5 mb-5"></div>
-
-
-//                 <AlgorithmProvider slug={slug}>
-//                     {({ steps, ExplanationComponent, CanvasComponent, ControlsComponent, canvasProps, controlProps }) => {
-
-
-//                         useEffect(() => {
-//                             setCurrentStep(0);                            
-//                         }, [steps]);
-
-
-//                         useEffect(() => {
-//                             let timer;
-//                             if (isAnimating && steps && currentStep < steps.length - 1) {
-//                                 timer = setTimeout(() => setCurrentStep(prev => prev + 1), speed);
-//                             } else if (isAnimating) {
-//                                 setIsAnimating(false);
-//                             }
-//                             return () => clearTimeout(timer);
-//                         }, [isAnimating, currentStep, speed, steps]);
-
-
-//                         const allControlProps = {
-//                             isAnimating, currentStep, speed,
-//                             totalSteps: steps ? steps.length : 0,
-//                             onPlayPause: () => {
-//                                 if (currentStep >= (steps?.length || 0) - 1) {
-//                                     setCurrentStep(0);
-//                                     setIsAnimating(true);
-//                                 } else {
-//                                     setIsAnimating(prev => !prev);
-//                                 }
-//                             },
-//                             onReset: () => { setIsAnimating(false); setCurrentStep(0); },
-//                             onSpeedChange: (val) => setSpeed(1050 - parseInt(val, 10)),
-//                             onStepForward: () => !isAnimating && currentStep < (steps?.length || 0) - 1 && setCurrentStep(prev => prev + 1),
-//                             onStepBackward: () => !isAnimating && currentStep > 0 && setCurrentStep(prev => prev - 1),
-//                             onStepChange: (index) => { if (!isAnimating) setCurrentStep(index); },
-//                             ...controlProps
-//                         };
-
-
-//                         const allCanvasProps = {
-//                             stepData: steps?.[currentStep],
-//                             ...canvasProps
-//                         };
-
-
-//                         return (
-//                             <div className="flex-grow flex flex-col gap-6 min-h-0">
-//                                 {/* --- TABS & CONTENT CONTAINER --- */}
-//                                 <div className="flex-grow flex flex-col bg-card border border-border rounded-xl shadow-lg overflow-hidden min-h-[400px]">
-//                                     <div className="border-b border-border flex-shrink-0 flex">
-//                                         <button onClick={() => setActiveTab('visualizer')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'visualizer' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Visualizer</button>
-//                                         <button onClick={() => setActiveTab('explanation')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'explanation' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Explanation</button>
-//                                         {/* NEW: Code Snippets Tab */}
-//                                         <button onClick={() => setActiveTab('code')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'code' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Code Snippets</button>
-//                                     </div>
-
-
-//                                     {/* Visualizer Tab Content */}
-//                                     {activeTab === 'visualizer' && (
-//                                         <div className="flex-grow flex-col lg:flex-row py-6 px-3 gap-3 overflow-auto scrollbar-hide w-full">
-//                                             <div className="flex-grow flex flex-col lg:flex-row gap-3.5 overflow-auto scrollbar-hide">
-//                                                 <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
-//                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
-//                                                 </div>
-//                                                 <div className="w-full lg:w-[330px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
-//                                                     {ControlsComponent && <ControlsComponent {...allControlProps} />}
-//                                                 </div>
-//                                             </div>
-//                                             <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl flex flex-col overflow-hidden scrollbar-hide">
-//                                                 <h3 className="p-3 font-bold border-b border-border text-text-primary flex-shrink-0">Detailed Steps</h3>
-//                                                 <div className="flex-grow p-3 overflow-y-auto scrollbar-hide">
-//                                                     {steps && <StepLog steps={steps} currentStep={currentStep} onStepChange={allControlProps.onStepChange} />}
-//                                                 </div>
-//                                             </div>
-//                                         </div>
-//                                     )}
-
-
-//                                     {/* Explanation Tab Content */}
-//                                     {activeTab === 'explanation' && (
-//                                         <div className="flex-grow flex justify-center md:p-4 lg:p-8 p-2 overflow-y-auto">
-//                                             {ExplanationComponent && <ExplanationComponent />}
-//                                         </div>
-//                                     )}
-
-//                                     {/* Code Snippets Tab Content - NEW */}
-//                                     {activeTab === 'code' && (
-//                                         <CodeSnippets algorithm={algorithm} />
-//                                     )}
-//                                 </div>
-
-
-//                                 {/* --- STEP LOG (ALWAYS VISIBLE) --- */}
-                               
-//                             </div>
-//                         );
-//                     }}
-//                 </AlgorithmProvider>
-//             </main>
-//         </div>
-//     );
-// }
-
-
-
-
-// import { useState, useEffect, useMemo } from 'react';
-// import { useParams, Link } from 'react-router';
-// import { ChevronRight, Link as CopyIcon, Share2 } from 'lucide-react';
-// import { allAlgorithms } from '../data/algorithms';
-// import Navbar from '../components/shared/Navbar';
-// import AlgorithmProvider from '../components/visualizers/AlgorithmProvider';
-// import ArrayStepLog from '../components/visualizers/steplogs/ArrayStepLog';
-// import GenericStepLog from '../components/visualizers/steplogs/GenericStepLog';
-
-// const stepLogMap = {
-//     array: ArrayStepLog,
-//     graph: GenericStepLog,
-//     tree: GenericStepLog,
-//     default: GenericStepLog,
-// };
-
-// export default function VisualizerLayout() {
-//     const { slug } = useParams();
-//     const algorithm = useMemo(() => allAlgorithms.find(a => a.slug === slug), [slug]);
-//     const [isAnimating, setIsAnimating] = useState(false);
-//     const [speed, setSpeed] = useState(500);
-//     const [currentStep, setCurrentStep] = useState(0);
-//     const [activeTab, setActiveTab] = useState('visualizer');
-    
-//     // --- NEW: State for copy button text ---
-//     const [copyStatus, setCopyStatus] = useState('Copy Link');
-
-//     useEffect(() => {
-//         setIsAnimating(false);
-//         setCurrentStep(0);
-//         setActiveTab('visualizer');
-//         setCopyStatus('Copy Link'); // Reset copy button on slug change
-//     }, [slug]);
-
-//     const visualizerType = algorithm?.visualizerType || 'default';
-//     const StepLog = stepLogMap[visualizerType] || stepLogMap.default;
-
-//     // --- Handler for the "Copy Link" button ---
-//     const handleCopyLink = () => {
-//         navigator.clipboard.writeText(window.location.href).then(() => {
-//             setCopyStatus('Copied!');
-//             setTimeout(() => setCopyStatus('Copy Link'), 1000); // Reset after 2 seconds
-//         }).catch(err => {
-//             console.error('Failed to copy text: ', err);
-//             setCopyStatus('Failed to copy');
-//             setTimeout(() => setCopyStatus('Copy Link'), 1000);
-//         });
-//     };
-
-//     // --- Handler for the "Share" button using Web Share API ---
-//     const handleShare = async () => {
-//         const shareData = {
-//             title: `${algorithm?.name} Visualizer`,
-//             text: `Check out this interactive visualizer for the ${algorithm?.name} algorithm!`,
-//             url: window.location.href,
-//         };
-//         if (navigator.share) {
-//             try {
-//                 await navigator.share(shareData);
-//             } catch (err) {
-//                 console.error("Error sharing:", err);
-//             }
-//         } else {
-//             // Fallback for browsers that don't support Web Share API
-//             handleCopyLink(); // Copy link as a fallback
-//         }
-//     };
-
-//     return (
-//         <div className="min-h-screen flex flex-col bg-background text-text-primary">
-//             <Navbar />
-//             <main className="flex-grow flex flex-col mt-11 gap-6 lg:px-12 md:px-8 px-6 py-17">
-
-//                 {/* --- HEADER SECTION --- */}
-//                 <header className="flex flex-col items-center text-center">
-//                     {/* Breadcrumbs (Kept at the top left for context) */}
-//                     <div className="w-full flex items-center text-sm text-text-secondary mb-4 gap-2">
-//                         <Link to="/" className="hover:text-accent">Home</Link>
-//                         <ChevronRight size={16} />
-//                         <Link to="/visualizers" className="hover:text-accent">Visualizer</Link>
-//                         <ChevronRight size={16} />
-//                         <span className="text-text-primary">{algorithm?.name}</span>
-//                     </div>
-
-//                     {/* Category Badge */}
-//                     <div className="bg-accent text-white px-5 py-1 rounded-full text-md font-medium uppercase tracking-wider mb-5">
-//                         {algorithm?.category}
-//                     </div>
-
-//                     {/* Main Title */}
-//                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight">
-//                         {algorithm?.name || "Visualizer"}
-//                     </h1>
-                    
-//                     {/* Action Buttons */}
-//                     <div className="mt-6 flex items-center gap-4">
-//                         <button 
-//                             onClick={handleCopyLink}
-//                             className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer transition-colors duration-200"
-//                         >
-//                             <CopyIcon size={15} />
-//                             <span className='text-sm'>{copyStatus}</span>
-//                         </button>
-//                         <button 
-//                             onClick={handleShare}
-//                             className="flex items-center gap-2 px-2.5 py-1.5 bg-card border border-border/60 rounded-lg text-text-primary/90 hover:text-accent hover:border-accent cursor-pointer  transition-colors duration-200"
-//                         >
-//                             <Share2 size={15} />
-//                             <span className='text-sm'>Share</span>
-//                         </button>
-//                     </div>
-//                 </header>
-
-//                 <div className="h-0.5 w-full bg-text-primary/50 mt-5 mb-5"></div>
-
-//                 <AlgorithmProvider slug={slug}>
-//                     {({ steps, ExplanationComponent, CanvasComponent, ControlsComponent, canvasProps, controlProps }) => {
-
-//                         useEffect(() => {
-//                             setCurrentStep(0);                            
-//                         }, [steps]);
-
-//                         useEffect(() => {
-//                             let timer;
-//                             if (isAnimating && steps && currentStep < steps.length - 1) {
-//                                 timer = setTimeout(() => setCurrentStep(prev => prev + 1), speed);
-//                             } else if (isAnimating) {
-//                                 setIsAnimating(false);
-//                             }
-//                             return () => clearTimeout(timer);
-//                         }, [isAnimating, currentStep, speed, steps]);
-
-//                         const allControlProps = {
-//                             isAnimating, currentStep, speed,
-//                             totalSteps: steps ? steps.length : 0,
-//                             onPlayPause: () => {
-//                                 if (currentStep >= (steps?.length || 0) - 1) {
-//                                     setCurrentStep(0);
-//                                     setIsAnimating(true);
-//                                 } else {
-//                                     setIsAnimating(prev => !prev);
-//                                 }
-//                             },
-//                             onReset: () => { setIsAnimating(false); setCurrentStep(0); },
-//                             onSpeedChange: (val) => setSpeed(1050 - parseInt(val, 10)),
-//                             onStepForward: () => !isAnimating && currentStep < (steps?.length || 0) - 1 && setCurrentStep(prev => prev + 1),
-//                             onStepBackward: () => !isAnimating && currentStep > 0 && setCurrentStep(prev => prev - 1),
-//                             onStepChange: (index) => { if (!isAnimating) setCurrentStep(index); },
-//                             ...controlProps
-//                         };
-
-//                         const allCanvasProps = {
-//                             stepData: steps?.[currentStep],
-//                             ...canvasProps
-//                         };
-
-//                         return (
-//                             <div className="flex-grow flex flex-col gap-6 min-h-0">
-//                                 {/* --- TABS & CONTENT CONTAINER --- */}
-//                                 <div className="flex-grow flex flex-col bg-card border border-border rounded-xl shadow-lg overflow-hidden min-h-[400px]">
-//                                     <div className="border-b border-border flex-shrink-0 flex">
-//                                         <button onClick={() => setActiveTab('visualizer')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'visualizer' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Visualizer</button>
-//                                         <button onClick={() => setActiveTab('explanation')} className={`flex-1 p-3 font-semibold transition-colors duration-200 border-b-2 text-sm ${activeTab === 'explanation' ? 'border-accent text-accent' : 'border-transparent text-text-primary/90 hover:bg-accent/5'}`}>Explanation</button>
-//                                     </div>
-
-//                                     {/* Visualizer Tab Content */}
-//                                     {activeTab === 'visualizer' && (
-//                                         <div className="flex-grow flex-col lg:flex-row py-6 px-3 gap-3 overflow-auto scrollbar-hide w-full">
-//                                             <div className="flex-grow flex flex-col lg:flex-row gap-3.5 overflow-auto scrollbar-hide">
-//                                                 <div className="flex-grow h-[300px] lg:h-auto bg-background rounded-lg p-2 border border-border/50">
-//                                                 {CanvasComponent && <CanvasComponent {...allCanvasProps} />}
-//                                                 </div>
-//                                                 <div className="w-full lg:w-[330px] flex-shrink-0 overflow-y-auto bg-background rounded-lg border border-border/50">
-//                                                     {ControlsComponent && <ControlsComponent {...allControlProps} />}
-//                                                 </div>
-//                                             </div>
-//                                             <div className="h-48 flex-shrink-0 bg-card border border-border rounded-xl flex flex-col overflow-hidden scrollbar-hide">
-//                                                 <h3 className="p-3 font-bold border-b border-border text-text-primary flex-shrink-0">Detailed Steps</h3>
-//                                                 <div className="flex-grow p-3 overflow-y-auto scrollbar-hide">
-//                                                     {steps && <StepLog steps={steps} currentStep={currentStep} onStepChange={allControlProps.onStepChange} />}
-//                                                 </div>
-//                                             </div>
-//                                         </div>
-//                                     )}
-
-//                                     {/* Explanation Tab Content */}
-//                                     {activeTab === 'explanation' && (
-//                                         <div className="flex-grow flex justify-center md:p-4 lg:p-8 p-2 overflow-y-auto">
-//                                             {ExplanationComponent && <ExplanationComponent />}
-//                                         </div>
-//                                     )}
-//                                 </div>
-
-//                                 {/* --- STEP LOG (ALWAYS VISIBLE) --- */}
-                               
-//                             </div>
-//                         );
-//                     }}
-//                 </AlgorithmProvider>
-//             </main>
-//         </div>
-//     );
-// }

@@ -1,15 +1,26 @@
 import { Play, Pause, RotateCcw, ChevronsRight, Settings, BarChart3, Gauge, ChevronsRightLeft, StepForward, PlayCircle, StepBack} from 'lucide-react';
 
-export default function ArrayControls({isAnimating, currentStep, totalSteps, speed,onPlayPause, onReset,onSpeedChange,
-    onStepForward, onStepBackward,userInput, onUserInput, onApplyUserInput}) 
-{
-    const secondaryButtonStyles =  "btn-liquid-glass group w-full flex items-center justify-center gap-2 px-4 py-1.75 cursor-pointer";
+export default function ArrayControls({
+    isAnimating,
+    currentStep,
+    totalSteps,
+    speed,
+    onPlayPause,
+    onReset,
+    onSpeedChange,
+    onStepForward,
+    onStepBackward,
+    userInput,
+    onUserInput,
+    onApplyUserInput
+}) {
+    const secondaryButtonStyles = "btn-liquid-glass group w-full flex items-center justify-center gap-1 px-3 py-1.5 cursor-pointer text-xs";
 
     const arrayValues = userInput.split(',').map(item => item.trim()).filter(item => item !== '');
     const isOverLimit = arrayValues.length > 10;
 
     return (
-        <div className="p-5 space-y-8.5">
+        <div className="p-4 space-y-8">
             {/* --- MAIN HEADER --- */}
             <div className="flex items-center gap-3">
                 <Settings className="text-accent" />
@@ -20,7 +31,7 @@ export default function ArrayControls({isAnimating, currentStep, totalSteps, spe
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <PlayCircle className="text-accent" />
-                    <h3 className="text-lg font-semibold text-text-primary">Playback Controls</h3>
+                    <h3 className="text-sm lg:text-lg font-semibold text-text-primary">Playback Controls</h3>
                 </div>
                 <div className="flex items-center gap-4 px-2.75">
                     {/* Primary Action Button with Gradient and Animated Text */}
@@ -38,10 +49,10 @@ export default function ArrayControls({isAnimating, currentStep, totalSteps, spe
                     <button
                         onClick={onReset}
                         disabled={isAnimating}
-                        className="p-2.5 rounded-lg bg-card border border-border text-text-secondary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-accent hover:text-accent hover:-translate-y-px cursor-pointer"
+                        className="p-2 rounded-lg bg-card border border-border text-text-secondary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-accent hover:text-accent hover:-translate-y-px cursor-pointer"
                         title="Reset Algorithm"
                     >
-                        <RotateCcw size={16} />
+                        <RotateCcw size={18} />
                     </button>
                 </div>
             </div>
@@ -50,7 +61,7 @@ export default function ArrayControls({isAnimating, currentStep, totalSteps, spe
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <ChevronsRightLeft className="text-accent" />
-                    <h3 className="text-lg font-semibold text-text-primary">Step Controls</h3>
+                    <h3 className="text-sm lg:text-lg font-semibold text-text-primary">Step Controls</h3>
                 </div>
                 <div className="flex items-center gap-4 px-2.75">
                     {/* Secondary Button with Animated Icon */}
@@ -78,7 +89,7 @@ export default function ArrayControls({isAnimating, currentStep, totalSteps, spe
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <Gauge className="text-accent" />
-                    <h3 className="text-lg font-semibold text-text-primary">Animation Speed</h3>
+                    <h3 className="text-sm lg:text-lg font-semibold text-text-primary">Animation Speed</h3>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-text-primary/90 px-2.75">
                     <span>Slow</span>
@@ -97,7 +108,7 @@ export default function ArrayControls({isAnimating, currentStep, totalSteps, spe
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <BarChart3 className="text-accent" />
-                    <h3 className="text-lg font-semibold text-text-primary">Custom Input</h3>
+                    <h3 className="text-sm lg:text-lg font-semibold text-text-primary">Custom Input</h3>
                 </div>
                 <div className='px-2.75'>
                     <textarea
