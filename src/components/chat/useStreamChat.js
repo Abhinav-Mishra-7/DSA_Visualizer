@@ -1,7 +1,7 @@
 // frontend/src/components/chat/useStreamChat.js
 import { useState, useCallback, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:3000'; // or import from env
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 const STORAGE_KEY_PREFIX = 'chat_history_';
 
 export function useStreamChat({ title, description, testCases, startCode }) {
@@ -91,7 +91,8 @@ export function useStreamChat({ title, description, testCases, startCode }) {
 
         const payload = {
           messages: formattedMessages,
-          title: title || 'Algorithm',
+          message:userMessage,
+          algorithmName: title || 'Algorithm',
           description: description || '',
           testCases: testCases || [],
           startCode: startCode || ''
@@ -99,16 +100,35 @@ export function useStreamChat({ title, description, testCases, startCode }) {
 
         let aiResponse = '';
 
-        const response = await fetch(`${API_BASE_URL}/ai/chat-stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        const streamEndpoints = ['/ai/chat-stream'];
+        let response = null;
+        let lastErrorText = '';
+        let lastStatus = 0;
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        for (const endpoint of streamEndpoints) {
+          const candidate = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (candidate.ok) {
+            response = candidate;
+            break;
+          }
+
+          lastStatus = candidate.status;
+          lastErrorText = await candidate.text();
+          // if route not found, try next endpoint variant
+          if (candidate.status === 404) continue;
+
+          throw new Error(`HTTP error ${candidate.status}: ${lastErrorText}`);
+        }
+
+        if (!response) {
+          throw new Error(
+            `Chat stream endpoint not found. Tried /ai/chat-stream and /api/ai/chat-stream. Last status: ${lastStatus}.`
+          );
         }
 
         const reader = response.body.getReader();
@@ -127,12 +147,19 @@ export function useStreamChat({ title, description, testCases, startCode }) {
             try {
               const data = JSON.parse(line.slice(6));
 
-              if (data.text === '[DONE]') {
+              // if (data.text === '[DONE]') {
+              //   setIsStreaming(false);
+              //   continue;
+              // }
+              if (!data.text || data.text === "[DONE]") {
                 setIsStreaming(false);
                 continue;
               }
 
-              aiResponse += data.text;
+              // aiResponse += data.text;
+              if (data.text && data.text !== "[DONE]") {
+                aiResponse += data.text;
+              }
 
               setMessages((prev) => {
                 const newMessages = [...prev];
