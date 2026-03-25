@@ -46,7 +46,7 @@ export default function Navbar({ className = '', style = {} }) {
               ))}
             </div>
             {/* YOUR CUSTOM LOGIN BUTTON - Preserved as requested */}
-            <Link to="" className="flex items-center gap-2 px-5 py-1.75 text-sm font-semibold rounded-full bg-gradient-to-r from-accent-gradient-from to-accent-gradient-to text-white transition-all duration-300 hover:-translate-y-px hover:shadow-lg hover:shadow-accent/40">
+            <Link to="/auth" className="flex items-center gap-2 px-5 py-1.75 text-sm font-semibold rounded-full bg-gradient-to-r from-accent-gradient-from to-accent-gradient-to text-white transition-all duration-300 hover:-translate-y-px hover:shadow-lg hover:shadow-accent/40">
               <User size={15} />
               <span>Login / Signup</span>
             </Link>

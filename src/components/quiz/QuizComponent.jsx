@@ -614,7 +614,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
                   onClick={handleNext}
                   disabled={currentIndex === questions.length - 1}
                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
-                    currentIndex === questions.length - 1
+                    currentIndex === questions.length - 1  
                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
                       : 'text-white bg-gradient-to-br from-accent to-accent/50 hover:bg-blue-600'
                   }`}

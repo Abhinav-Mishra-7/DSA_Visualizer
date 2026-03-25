@@ -434,7 +434,7 @@ export default function VisualizerLayout() {
 
                  {/* Chat with AI */}
                   {activeTab === 'chat' && (
-                    <div className="flex-grow flex flex-col p-3 overflow-hidden h-[calc(100vh-64px)]">
+                    <div className="flex-grow flex flex-col overflow-hidden h-[calc(100vh)]">
                       <ChatWithAI
                         algorithm={algorithm}
                         userEmail={null}  
