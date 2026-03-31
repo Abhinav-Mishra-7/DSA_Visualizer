@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Brain, CheckCircle, XCircle, RefreshCw, Loader } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:3000';
+import axiosClient from '../../utils/axios';
 
 function normalizeQuestion(q, idx) {
   return {
@@ -27,11 +27,11 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
     [algorithm]
   );
 
-  const quizCacheRef = useRef(new Map()); // algoKey -> normalizedQuestions
+  const quizCacheRef = useRef(new Map());
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedByQuestionId, setSelectedByQuestionId] = useState({}); // qid -> selectedIndex
+  const [selectedByQuestionId, setSelectedByQuestionId] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [showDetailedReview, setShowDetailedReview] = useState(false);
   const [resultJson, setResultJson] = useState(null);
@@ -40,8 +40,8 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quizError, setQuizError] = useState(null);
 
+  // RESET ON ALGO CHANGE
   useEffect(() => {
-    // Reset quiz view when algorithm changes, but keep quizCache across tab switching.
     setQuestions([]);
     setCurrentIndex(0);
     setSelectedByQuestionId({});
@@ -53,10 +53,9 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
     if (cached?.length) setQuestions(cached);
   }, [algoKey]);
 
+  // 🔥 FETCH QUIZ (AXIOS)
   useEffect(() => {
-    // Lazy load: only fetch when Quiz tab is active for the first time.
-    if (!isActive) return;
-    if (!algorithm) return;
+    if (!isActive || !algorithm) return;
 
     const cached = quizCacheRef.current.get(algoKey);
     if (cached?.length) {
@@ -65,20 +64,15 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
     }
 
     let cancelled = false;
+
     const fetchQuiz = async () => {
       setIsLoadingQuiz(true);
       setQuizError(null);
 
       try {
-        const url = `${API_BASE_URL}/quiz/get-quiz/${encodeURIComponent(
-          algoNameForApi
-        )}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data?.message || `HTTP ${response.status}`);
-        }
+        const data = await axiosClient.get(
+          `/quiz/get-quiz/${encodeURIComponent(algoNameForApi)}`
+        );
 
         const rawQuestions =
           data?.questions ||
@@ -93,8 +87,10 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
         }
 
         if (cancelled) return;
+
         setQuestions(normalizedQuestions);
         quizCacheRef.current.set(algoKey, normalizedQuestions);
+
       } catch (err) {
         if (cancelled) return;
         setQuizError(err?.message || 'Failed to load quiz');
@@ -113,63 +109,14 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
   const question = questions[currentIndex];
 
   const answeredCount = useMemo(() => {
-    if (!questions.length) return 0;
     return questions.reduce((acc, q) => {
-      const val = selectedByQuestionId[q.id];
-      return acc + (val === undefined ? 0 : 1);
+      return acc + (selectedByQuestionId[q.id] !== undefined ? 1 : 0);
     }, 0);
   }, [questions, selectedByQuestionId]);
 
-  const resultByQuestionId = useMemo(() => {
-    const map = new Map();
-    const rows = resultJson?.results || resultJson?.questionResults || [];
-    for (const r of rows) {
-      if (r?.questionId !== undefined) map.set(r.questionId, r);
-    }
-    return map;
-  }, [resultJson]);
-
-  const currentResult = question ? resultByQuestionId.get(question.id) : null;
-
-  const computedCorrectIndex = useMemo(() => {
-    if (!question) return null;
-    const correctIndex =
-      currentResult?.correctIndex ??
-      currentResult?.answer ??
-      question.correctIndex;
-    const n = Number(correctIndex);
-    return Number.isFinite(n) ? n : -1;
-  }, [question, currentResult]);
-
-  const computedSelectedOptionIndex = useMemo(() => {
-    if (!question) return -1;
-    if (currentResult?.selectedOptionIndex !== undefined) {
-      const n = Number(currentResult.selectedOptionIndex);
-      return Number.isFinite(n) ? n : -1;
-    }
-
-    const v = selectedByQuestionId[question.id];
-    if (typeof v === 'number') return v;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : -1;
-  }, [question, currentResult, selectedByQuestionId]);
-
-  const explanationToShow = useMemo(() => {
-    if (!question) return '';
-    return currentResult?.explanation ?? question.explanation ?? '';
-  }, [question, currentResult]);
-
-  const handleOptionClick = (index) => {
-    if (!question || showResults) return;
-    setSelectedByQuestionId((prev) => ({
-      ...prev,
-      [question.id]: index
-    }));
-  };
-
+  // 🔥 SUBMIT QUIZ (AXIOS)
   const handleSubmit = async () => {
-    if (!questions.length || !algorithm) return;
-    if (isSubmitting) return;
+    if (!questions.length || !algorithm || isSubmitting) return;
 
     setIsSubmitting(true);
     setQuizError(null);
@@ -179,7 +126,6 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
         algorithm: algoNameForApi,
         answers: questions.map((q) => ({
           questionId: q.id,
-          // IMPORTANT: if user did not select an option, send -1.
           selectedOptionIndex:
             typeof selectedByQuestionId[q.id] === 'number'
               ? selectedByQuestionId[q.id]
@@ -187,14 +133,9 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
         }))
       };
 
-      const response = await fetch(`${API_BASE_URL}/quiz/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const data = await axiosClient.post('/quiz/verify', payload);
 
-      const data = await response.json();
-      if (!response.ok || data?.success === false) {
+      if (data?.success === false) {
         throw new Error(data?.message || 'Quiz verification failed');
       }
 
@@ -202,6 +143,7 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
       setShowResults(true);
       setShowDetailedReview(false);
       setCurrentIndex(0);
+
     } catch (err) {
       setQuizError(err?.message || 'Quiz verification failed');
     } finally {
@@ -209,13 +151,19 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
     }
   };
 
+  const handleOptionClick = (index) => {
+    if (!question || showResults) return;
+    setSelectedByQuestionId((prev) => ({
+      ...prev,
+      [question.id]: index
+    }));
+  };
+
   const handleNext = () => {
-    if (!questions.length) return;
     setCurrentIndex((prev) => Math.min(prev + 1, questions.length - 1));
   };
 
   const handlePrevious = () => {
-    if (!questions.length) return;
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
 
@@ -228,37 +176,8 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
     setQuizError(null);
   };
 
-  const handleReviewAnswers = () => {
-    setCurrentIndex(0);
-    setShowDetailedReview(true);
-  };
-
-  const handleBackToScore = () => {
-    setCurrentIndex(0);
-    setShowDetailedReview(false);
-  };
-
   const totalQuestions = questions.length;
-  const scoreCorrect =
-    resultJson?.score?.correct ??
-    resultJson?.score?.correctCount ??
-    resultJson?.score?.value ??
-    null;
-
-  if (!algorithm) {
-    return (
-      <div className="flex-grow flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="inline-block p-6 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-full mb-6 animate-pulse">
-            <Brain size={56} className="text-accent" />
-          </div>
-          <p className="text-text-secondary text-xl mb-3 font-semibold">
-            Algorithm data not available
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const scoreCorrect = resultJson?.score?.correct ?? null;
 
   return (
     <div className="flex-grow flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-card/30 relative overflow-hidden">
@@ -659,6 +578,667 @@ const QuizComponent = ({ algorithm, isActive = false }) => {
 };
 
 export default QuizComponent;
+
+// import { useEffect, useMemo, useRef, useState } from 'react';
+// import { Brain, CheckCircle, XCircle, RefreshCw, Loader } from 'lucide-react';
+
+// import { apiFetch, getApiBaseUrl } from '../../utils/api';
+
+// const API_BASE_URL = getApiBaseUrl();
+
+// function normalizeQuestion(q, idx) {
+//   return {
+//     id: q.id ?? q.questionId ?? idx + 1,
+//     question: q.question ?? '',
+//     options: Array.isArray(q.options) ? q.options : [],
+//     correctIndex:
+//       q.correctIndex ?? q.answer ?? q.correctOptionIndex ?? q.correct ?? -1,
+//     explanation: q.explanation ?? ''
+//   };
+// }
+
+// const QuizComponent = ({ algorithm, isActive = false }) => {
+//   const algoKey = useMemo(
+//     () => algorithm?.slug || algorithm?.name || 'unknown-algorithm',
+//     [algorithm]
+//   );
+
+//   const algoNameForApi = useMemo(
+//     () => algorithm?.name || algorithm?.slug || 'unknown',
+//     [algorithm]
+//   );
+
+//   const quizCacheRef = useRef(new Map()); // algoKey -> normalizedQuestions
+
+//   const [questions, setQuestions] = useState([]);
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [selectedByQuestionId, setSelectedByQuestionId] = useState({}); // qid -> selectedIndex
+//   const [showResults, setShowResults] = useState(false);
+//   const [showDetailedReview, setShowDetailedReview] = useState(false);
+//   const [resultJson, setResultJson] = useState(null);
+
+//   const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [quizError, setQuizError] = useState(null);
+
+//   useEffect(() => {
+//     // Reset quiz view when algorithm changes, but keep quizCache across tab switching.
+//     setQuestions([]);
+//     setCurrentIndex(0);
+//     setSelectedByQuestionId({});
+//     setShowResults(false);
+//     setResultJson(null);
+//     setQuizError(null);
+
+//     const cached = quizCacheRef.current.get(algoKey);
+//     if (cached?.length) setQuestions(cached);
+//   }, [algoKey]);
+
+//   useEffect(() => {
+//     // Lazy load: only fetch when Quiz tab is active for the first time.
+//     if (!isActive) return;
+//     if (!algorithm) return;
+
+//     const cached = quizCacheRef.current.get(algoKey);
+//     if (cached?.length) {
+//       setQuestions(cached);
+//       return;
+//     }
+
+//     let cancelled = false;
+//     const fetchQuiz = async () => {
+//       setIsLoadingQuiz(true);
+//       setQuizError(null);
+
+//       try {
+//         const url = `${API_BASE_URL}/quiz/get-quiz/${encodeURIComponent(
+//           algoNameForApi
+//         )}`;
+
+//         const response = await apiFetch(url);
+//         const data = await response.json();
+//         if (!response.ok) {
+//           throw new Error(data?.message || `HTTP ${response.status}`);
+//         }
+
+//         const rawQuestions =
+//           data?.questions ||
+//           data?.quiz?.questions ||
+//           data?.data?.questions ||
+//           [];
+
+//         const normalizedQuestions = rawQuestions.map(normalizeQuestion);
+
+//         if (!normalizedQuestions.length) {
+//           throw new Error(data?.message || 'Quiz not available');
+//         }
+
+//         if (cancelled) return;
+//         setQuestions(normalizedQuestions);
+//         quizCacheRef.current.set(algoKey, normalizedQuestions);
+//       } catch (err) {
+//         if (cancelled) return;
+//         setQuizError(err?.message || 'Failed to load quiz');
+//       } finally {
+//         if (!cancelled) setIsLoadingQuiz(false);
+//       }
+//     };
+
+//     fetchQuiz();
+
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [algoKey, algoNameForApi, algorithm, isActive]);
+
+//   const question = questions[currentIndex];
+
+//   const answeredCount = useMemo(() => {
+//     if (!questions.length) return 0;
+//     return questions.reduce((acc, q) => {
+//       const val = selectedByQuestionId[q.id];
+//       return acc + (val === undefined ? 0 : 1);
+//     }, 0);
+//   }, [questions, selectedByQuestionId]);
+
+//   const resultByQuestionId = useMemo(() => {
+//     const map = new Map();
+//     const rows = resultJson?.results || resultJson?.questionResults || [];
+//     for (const r of rows) {
+//       if (r?.questionId !== undefined) map.set(r.questionId, r);
+//     }
+//     return map;
+//   }, [resultJson]);
+
+//   const currentResult = question ? resultByQuestionId.get(question.id) : null;
+
+//   const computedCorrectIndex = useMemo(() => {
+//     if (!question) return null;
+//     const correctIndex =
+//       currentResult?.correctIndex ??
+//       currentResult?.answer ??
+//       question.correctIndex;
+//     const n = Number(correctIndex);
+//     return Number.isFinite(n) ? n : -1;
+//   }, [question, currentResult]);
+
+//   const computedSelectedOptionIndex = useMemo(() => {
+//     if (!question) return -1;
+//     if (currentResult?.selectedOptionIndex !== undefined) {
+//       const n = Number(currentResult.selectedOptionIndex);
+//       return Number.isFinite(n) ? n : -1;
+//     }
+
+//     const v = selectedByQuestionId[question.id];
+//     if (typeof v === 'number') return v;
+//     const n = Number(v);
+//     return Number.isFinite(n) ? n : -1;
+//   }, [question, currentResult, selectedByQuestionId]);
+
+//   const explanationToShow = useMemo(() => {
+//     if (!question) return '';
+//     return currentResult?.explanation ?? question.explanation ?? '';
+//   }, [question, currentResult]);
+
+//   const handleOptionClick = (index) => {
+//     if (!question || showResults) return;
+//     setSelectedByQuestionId((prev) => ({
+//       ...prev,
+//       [question.id]: index
+//     }));
+//   };
+
+//   const handleSubmit = async () => {
+//     if (!questions.length || !algorithm) return;
+//     if (isSubmitting) return;
+
+//     setIsSubmitting(true);
+//     setQuizError(null);
+
+//     try {
+//       const payload = {
+//         algorithm: algoNameForApi,
+//         answers: questions.map((q) => ({
+//           questionId: q.id,
+//           // IMPORTANT: if user did not select an option, send -1.
+//           selectedOptionIndex:
+//             typeof selectedByQuestionId[q.id] === 'number'
+//               ? selectedByQuestionId[q.id]
+//               : -1
+//         }))
+//       };
+
+//       const response = await apiFetch(`/quiz/verify`, {
+//         method: 'POST',
+//         body: JSON.stringify(payload)
+//       });
+
+//       const data = await response.json();
+//       if (!response.ok || data?.success === false) {
+//         throw new Error(data?.message || 'Quiz verification failed');
+//       }
+
+//       setResultJson(data);
+//       setShowResults(true);
+//       setShowDetailedReview(false);
+//       setCurrentIndex(0);
+//     } catch (err) {
+//       setQuizError(err?.message || 'Quiz verification failed');
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   const handleNext = () => {
+//     if (!questions.length) return;
+//     setCurrentIndex((prev) => Math.min(prev + 1, questions.length - 1));
+//   };
+
+//   const handlePrevious = () => {
+//     if (!questions.length) return;
+//     setCurrentIndex((prev) => Math.max(prev - 1, 0));
+//   };
+
+//   const handleReset = () => {
+//     setCurrentIndex(0);
+//     setSelectedByQuestionId({});
+//     setShowResults(false);
+//     setShowDetailedReview(false);
+//     setResultJson(null);
+//     setQuizError(null);
+//   };
+
+//   const handleReviewAnswers = () => {
+//     setCurrentIndex(0);
+//     setShowDetailedReview(true);
+//   };
+
+//   const handleBackToScore = () => {
+//     setCurrentIndex(0);
+//     setShowDetailedReview(false);
+//   };
+
+//   const totalQuestions = questions.length;
+//   const scoreCorrect =
+//     resultJson?.score?.correct ??
+//     resultJson?.score?.correctCount ??
+//     resultJson?.score?.value ??
+//     null;
+
+//   if (!algorithm) {
+//     return (
+//       <div className="flex-grow flex items-center justify-center p-8">
+//         <div className="text-center">
+//           <div className="inline-block p-6 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-full mb-6 animate-pulse">
+//             <Brain size={56} className="text-accent" />
+//           </div>
+//           <p className="text-text-secondary text-xl mb-3 font-semibold">
+//             Algorithm data not available
+//           </p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex-grow flex flex-col h-full min-h-0 bg-gradient-to-br from-background via-background to-card/30 relative overflow-hidden">
+//       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 animate-pulse pointer-events-none opacity-30" />
+
+//       <div className="relative z-10 flex flex-col h-full min-h-0">
+//         {/* HEADER */}
+//         <div className="pt-3 px-3 sm:px-4 md:px-6 border-b border-border/50 bg-gradient-to-r from-background/80 to-card/40 backdrop-blur-sm flex justify-between items-center flex-wrap gap-3">
+//           <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+//             <div className="p-3 bg-gradient-to-br from-accent/40 to-accent/5 rounded-xl">
+//               <Brain size={24} className="text-accent" />
+//             </div>
+//             <div>
+//               <p className="text-xs text-text-secondary/90 uppercase tracking-widest font-bold mb-1">
+//                 Quiz Practice
+//               </p>
+//               <p className="text-lg md:text-xl font-bold text-text-primary">
+//                 {algorithm?.name} Quiz
+//               </p>
+//             </div>
+//           </div>
+
+//           <div className="flex items-center gap-2 sm:gap-3 text-xs text-text-secondary/90 flex-wrap mb-2">
+//             <div className="px-3 py-1 bg-background/60 rounded border border-border/30">
+//               Question {totalQuestions ? currentIndex + 1 : 0} / {totalQuestions || 0}
+//             </div>
+//             <span>•</span>
+//             {showResults ? (
+//               <div className="px-3 py-1 bg-background/90 rounded border border-border/30">
+//                 Score : <span className="relative top-0.25 text-accent">
+//                   {scoreCorrect !== null ? `${scoreCorrect}/${totalQuestions}` : '—'}
+//                 </span>
+//               </div>
+//             ) : (
+//               <div className="px-3 py-1 bg-background/90 rounded border border-border/30">
+//                 Answered : <span className="relative top-0.25">{answeredCount}</span> /{' '}
+//                 {totalQuestions || 0}
+//               </div>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* BODY */}
+//         {!isLoadingQuiz && !quizError && questions.length === 0 && !isActive ? (
+//           <div className="flex-grow flex flex-col items-center justify-center p-6 md:p-10">
+//             <div className="max-w-md w-full bg-card/60 border border-border/50 rounded-2xl p-6 md:p-8 text-center shadow-lg">
+//               <div className="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/30 to-pink-500/20 flex items-center justify-center">
+//                 <Brain size={32} className="text-blue-500" />
+//               </div>
+//               <h2 className="text-xl md:text-2xl font-bold text-text-primary mb-2">
+//                 Quiz not available
+//               </h2>
+//               <p className="text-sm md:text-base text-text-secondary/80 mb-1">
+//                 No questions loaded for {algorithm?.name}.
+//               </p>
+//               <p className="text-xs md:text-sm text-text-secondary/70">
+//                 Backend may not have quizzes for this algorithm yet.
+//               </p>
+//             </div>
+//           </div>
+//         ) : quizError ? (
+//           <div className="flex-grow flex flex-col items-center justify-center p-6 md:p-10">
+//             <div className="max-w-md w-full bg-red-500/10 border border-red-500/30 rounded-2xl p-6 md:p-8 text-center shadow-lg">
+//               <h2 className="text-xl md:text-2xl font-bold text-blue-300 mb-3">
+//                 Failed to load quiz
+//               </h2>
+//               <p className="text-xs md:text-sm text-text-secondary/90 mb-0.5">{quizError}</p>
+//             </div>
+//           </div>
+//         ) : questions.length === 0 && (isLoadingQuiz || isActive) ? (
+//           <div className="flex-grow flex items-center justify-center p-6 md:p-10">
+//             <div className="flex items-center gap-3 text-text-secondary/90">
+//               <Loader size={22} className="animate-spin text-accent" />
+//               <span className="text-sm md:text-base font-semibold">Loading quiz...</span>
+//             </div>
+//           </div>
+//         ) : !showResults ? (
+//           <div className="flex-grow min-h-0 flex flex-col justify-between p-2.5 sm:p-3.5 gap-4">
+//             <div className="max-w-5xl w-full min-h-[280px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+//               <h2 className="text-lg md:text-2xl font-bold text-text-primary mb-4 leading-relaxed">
+//                 {question?.question}
+//               </h2>
+
+//               <div className="space-y-3">
+//                 {question?.options?.map((opt, idx) => {
+//                   const isSelected = selectedByQuestionId?.[question.id] === idx;
+
+//                   const stateClass = isSelected
+//                     ? 'border-blue-500 bg-blue-500/10'
+//                     : 'border-border/50 hover:border-blue-500/60 hover:bg-blue-500/5';
+
+//                   return (
+//                     <button
+//                       key={idx}
+//                       onClick={() => handleOptionClick(idx)}
+//                       className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 text-sm md:text-base cursor-pointer ${stateClass}`}
+//                     >
+//                       <div className="w-6 h-6 flex items-center justify-center rounded-full border border-border/50">
+//                         {isSelected ? (
+//                           <CheckCircle size={16} className="text-blue-600" />
+//                         ) : null}
+//                       </div>
+//                       <span className="flex-1">{opt}</span>
+//                     </button>
+//                   );
+//                 })}
+//               </div>
+//             </div>
+
+//             {/* NAVIGATION BUTTONS */}
+//             <div className="flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
+//               <div className="flex justify-between items-center gap-4">
+//                 <button
+//                   onClick={handlePrevious}
+//                   disabled={currentIndex === 0 || isSubmitting}
+//                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+//                     currentIndex === 0 || isSubmitting
+//                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
+//                       : 'border-border/60 text-text-primary hover:border-blue-500/60 hover:bg-blue-500/5'
+//                   }`}
+//                 >
+//                   Previous
+//                 </button>
+
+//                 <button
+//                   onClick={handleNext}
+//                   disabled={currentIndex === questions.length - 1 || isSubmitting}
+//                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+//                     currentIndex === questions.length - 1 || isSubmitting
+//                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
+//                       : 'text-white bg-gradient-to-br from-accent to-accent/50 hover:bg-blue-400'
+//                   }`}
+//                 >
+//                   Next
+//                 </button>
+//               </div>
+
+//               <div className="flex justify-end">
+//                 <button
+//                   onClick={handleSubmit}
+//                   disabled={isSubmitting || !questions.length}
+//                   className={`px-6 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+//                     isSubmitting || !questions.length
+//                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
+//                       : 'border-accent text-white bg-accent hover:bg-accent/90'
+//                   }`}
+//                 >
+//                   {isSubmitting ? (
+//                     <span className="inline-flex items-center gap-2">
+//                       <Loader size={16} className="animate-spin" />
+//                       Submitting...
+//                     </span>
+//                   ) : (
+//                     'Submit Quiz'
+//                   )}
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         ) : !showDetailedReview ? (
+//           <div className="flex-grow min-h-0 overflow-y-auto flex items-center justify-center px-2.5 sm:px-3 py-3 sm:py-4">
+//             {/* SCORE SUMMARY VIEW */}
+//             <div className="max-w-2xl w-full">
+//               <div className="quiz-score-card rounded-2xl pt-5 sm:pt-6 pb-4 px-3 sm:px-4 md:px-6 text-center shadow-lg relative overflow-hidden">
+//                 {/* Animated background elements */}
+//                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse" />
+//                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -ml-16 -mb-16 animate-pulse" />
+
+//                 <div className="relative z-10">
+//                   <div className="mx-auto mb-2 md:mb-3 w-16 h-16 rounded-full bg-gradient-to-br from-accent/40 to-accent/10 flex items-center justify-center">
+//                     <Brain size={32} className="text-accent" />
+//                   </div>
+
+//                   <h2 className="text-2xl md:text-3xl font-bold quiz-score-title mb-1">
+//                     Awesome!
+//                   </h2>
+//                   <p className="text-xs md:text-sm text-text-secondary/90 mb-3 font-medium">
+//                     You completed <span className="text-accent font-bold">{algorithm?.name}</span>
+//                   </p>
+
+//                   {/* Score container with progress bar */}
+//                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+//                     {/* Score Display */}
+//                     <div className="quiz-score-panel rounded-lg p-3">
+//                       <p className="text-xs uppercase tracking-widest font-bold text-text-secondary/90 mb-1">
+//                         Score
+//                       </p>
+//                       <div className="flex items-baseline justify-center gap-0.5">
+//                         <span className="text-3xl md:text-4xl font-bold text-accent">
+//                           {scoreCorrect !== null ? scoreCorrect : '—'}
+//                         </span>
+//                         <span className="text-lg md:text-xl text-text-secondary/60 font-semibold">
+//                           /{totalQuestions}
+//                         </span>
+//                       </div>
+//                       <p className="text-xs md:text-sm font-bold text-accent mt-0.5">
+//                         {scoreCorrect !== null ? (
+//                           <>
+//                             {Math.round((scoreCorrect / totalQuestions) * 100)}%
+//                           </>
+//                         ) : (
+//                           '—'
+//                         )}
+//                       </p>
+//                     </div>
+
+//                     {/* Performance Level */}
+//                     <div className="quiz-stars-panel rounded-lg p-3 flex flex-col justify-center items-center">
+//                       <p className="text-xs uppercase tracking-widest font-bold text-text-secondary/90 mb-1">
+//                         Stars
+//                       </p>
+//                       <div className="flex gap-0.5 justify-center mb-1">
+//                         {scoreCorrect && totalQuestions && (
+//                           <>
+//                             {[...Array(5)].map((_, i) => (
+//                               <span
+//                                 key={i}
+//                                 className={`text-sm ${
+//                                   i < Math.ceil((scoreCorrect / totalQuestions) * 5)
+//                                     ? 'text-accent'
+//                                     : 'text-text-secondary/30'
+//                                 }`}
+//                               >
+//                                 ⭐
+//                               </span>
+//                             ))}
+//                           </>
+//                         )}
+//                       </div>
+//                       <p className="text-xs text-text-secondary/80 font-semibold">
+//                         {scoreCorrect === totalQuestions
+//                           ? 'Perfect'
+//                           : scoreCorrect && scoreCorrect >= Math.ceil(totalQuestions * 0.8)
+//                           ? 'Expert'
+//                           : scoreCorrect && scoreCorrect >= Math.ceil(totalQuestions * 0.6)
+//                           ? 'Good'
+//                           : 'Start'}
+//                       </p>
+//                     </div>
+//                   </div>
+
+//                   {/* Progress bar */}
+//                   <div className="mb-3">
+//                     <div className="flex items-center justify-between mb-1">
+//                       <p className="text-xs font-semibold text-text-secondary/80">Progress</p>
+//                       <p className="text-xs font-bold text-accent">
+//                         {scoreCorrect !== null ? Math.round((scoreCorrect / totalQuestions) * 100) : 0}%
+//                       </p>
+//                     </div>
+//                     <div className="w-full bg-text-secondary/10 rounded-full h-2 overflow-hidden">
+//                       <div
+//                         className="h-full bg-gradient-to-r from-accent to-blue-500 rounded-full transition-all duration-1000"
+//                         style={{
+//                           width: scoreCorrect && totalQuestions ? `${(scoreCorrect / totalQuestions) * 100}%` : '0%'
+//                         }}
+//                       />
+//                     </div>
+//                   </div>
+
+//                   {/* Motivational Message */}
+//                   <p className="text-sm md:text-base text-text-secondary/90 mb-3 leading-snug font-bold px-1">
+//                     {scoreCorrect === totalQuestions
+//                       ? '🎉 Perfect! You\'ve mastered this!'
+//                       : scoreCorrect && scoreCorrect >= Math.ceil(totalQuestions * 0.7)
+//                       ? '🌟 Excellent work! Well done!'
+//                       : scoreCorrect && scoreCorrect >= Math.ceil(totalQuestions * 0.5)
+//                       ? '📚 Good effort! Keep it up!'
+//                       : '💪 Great try! Review to improve!'}
+//                   </p>
+
+//                   {/* Action Buttons */}
+//                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
+//                     <button
+//                       onClick={handleReviewAnswers}
+//                       className="flex-1 px-4 py-2.5 rounded-lg quiz-primary-btn text-white text-xs md:text-sm font-bold hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+//                     >
+//                       <span>📋</span>
+//                       <span>Review</span>
+//                     </button>
+//                     <button
+//                       onClick={handleReset}
+//                       className="flex-1 px-4 py-2.5 rounded-lg quiz-secondary-btn text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1"
+//                     >
+//                       <span>🔄</span>
+//                       <span>Retry</span>
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         ) : (
+//           <div className="flex-grow min-h-0 flex flex-col justify-between p-3 sm:p-4 md:p-5 gap-4">
+//             <div className="max-w-5xl w-full min-h-[280px] mx-auto bg-card/60 border border-border/50 rounded-2xl p-3 sm:p-4 md:p-5 backdrop-blur-sm overflow-y-auto">
+//               <h2 className="text-lg md:text-2xl font-bold text-text-primary mb-6 leading-relaxed">
+//                 {question?.question}
+//               </h2>
+
+//               <div className="space-y-3">
+//                 {question?.options?.map((opt, idx) => {
+//                   const isCorrect = idx === computedCorrectIndex;
+//                   const isSelected = idx === computedSelectedOptionIndex;
+
+//                   let stateClass =
+//                     'border-border/50 hover:border-blue-500/60 hover:bg-blue-500/5';
+//                   if (isCorrect) stateClass = 'border-green-500 bg-green-500/10';
+//                   else if (isSelected && !isCorrect)
+//                     stateClass = 'border-red-500 bg-red-500/10';
+
+//                   return (
+//                     <div key={idx}>
+//                       <div
+//                         className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 text-sm md:text-base ${
+//                           isCorrect ? 'cursor-default' : 'cursor-default'
+//                         } ${stateClass}`}
+//                       >
+//                         <div className="w-6 h-6 flex items-center justify-center rounded-full border border-border/50">
+//                           {isCorrect ? (
+//                             <CheckCircle size={16} className="text-green-600" />
+//                           ) : isSelected && !isCorrect ? (
+//                             <XCircle size={16} className="text-red-600" />
+//                           ) : null}
+//                         </div>
+//                         <span className="flex-1">{opt}</span>
+//                       </div>
+//                     </div>
+//                   );
+//                 })}
+//               </div>
+
+//               <p className="mt-4 text-xs md:text-sm text-text-secondary/80 bg-background/70 border border-border/40 rounded-xl px-4 py-3">
+//                 <span className="font-semibold text-text-primary">Explanation: </span>
+//                 {explanationToShow}
+//               </p>
+//             </div>
+
+//             {/* NAVIGATION BUTTONS */}
+//             <div className="flex flex-col gap-2.5 max-w-2xl mx-auto w-full">
+//               <div className="flex justify-between items-center gap-4">
+//                 <button
+//                   onClick={handlePrevious}
+//                   disabled={currentIndex === 0}
+//                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+//                     currentIndex === 0
+//                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
+//                       : 'border-border/60 text-text-primary hover:border-blue-500/60 hover:bg-blue-500/5'
+//                   }`}
+//                 >
+//                   Previous
+//                 </button>
+
+//                 <button
+//                   onClick={handleNext}
+//                   disabled={currentIndex === questions.length - 1}
+//                   className={`px-4 py-2 rounded-xl text-xs md:text-sm font-semibold border transition-all cursor-pointer ${
+//                     currentIndex === questions.length - 1  
+//                       ? 'border-border/40 text-text-secondary/40 cursor-not-allowed'
+//                       : 'text-white bg-gradient-to-br from-accent to-accent/50 hover:bg-blue-600'
+//                   }`}
+//                 >
+//                   Next
+//                 </button>
+//               </div>
+
+//               <div className="flex justify-end gap-2">
+//                 <button
+//                   onClick={handleBackToScore}
+//                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-accent/40 text-accent text-xs md:text-sm font-semibold hover:bg-accent/10 hover:border-accent transition-all duration-200 cursor-pointer"
+//                 >
+//                   View Score
+//                 </button>
+//                 <button
+//                   onClick={handleReset}
+//                   disabled={isSubmitting}
+//                   className="inline-flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm font-semibold hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+//                 >
+//                   <RefreshCw size={16} />
+//                   Try Again
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* FOOTER */}
+//         <div className="p-4 bg-card/50 border-t border-border/30 flex items-center justify-between text-xs text-text-secondary/90 flex-wrap gap-3">
+//           <div className="flex items-center gap-2">
+//             <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-50 animate-pulse" />
+//             <span>💡 Use this quiz to reinforce your understanding of {algorithm?.name}.</span>
+//           </div>
+//           <div className="flex items-center gap-2">
+//             <span className="text-text-secondary/90">✨ Interactive learning experience</span>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default QuizComponent;
 
 
 

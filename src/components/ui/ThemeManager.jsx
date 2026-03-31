@@ -5,16 +5,12 @@ export default function ThemeManager() {
   const theme = useSelector((state) => state.ui.theme);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark', 'neon');
-    root.classList.add(theme);
-
-    try {
-      window.localStorage.setItem('app-theme', theme);
-    } catch (error) {
-      console.error("Failed to save theme to localStorage", error);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, [theme]);
 
-  return null;
+  return null; 
 }

@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader, AlertCircle, Brain , Bot , Plus, MessageCircle, ArrowLeft,PanelLeft, MoreHorizontal, ArrowDown } from 'lucide-react';
+import { Send, Loader, AlertCircle, Bot, Plus, MessageCircle, PanelLeft, MoreHorizontal, ArrowDown } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import { useStreamChat } from './useStreamChat';
-import DeleteChatModal from "./DeleteChat"
+import DeleteChatModal from "./DeleteChat";
+import axiosClient from '../../utils/axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = axiosClient.defaults.baseURL;
 
 export default function ChatWithAI({
   algorithm,
@@ -14,6 +15,7 @@ export default function ChatWithAI({
 }) {
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [history, setHistory] = useState([]);
@@ -25,12 +27,6 @@ export default function ChatWithAI({
   const [deleteChat, setDeleteChat] = useState(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
-  const safeString = (val) => {
-    if (!val) return "";
-    if (typeof val === "string") return val;
-    return JSON.stringify(val, null, 2);
-  };
-
   const {
     messages,
     setMessages,
@@ -40,161 +36,66 @@ export default function ChatWithAI({
     isStreaming,
     isLoading: isLoadingHistoryLocal
   } = useStreamChat({
-    title: safeString(algorithm?.name || "Algorithm"),
-    description: safeString(algorithm?.description || ""),
-    testCases: safeString(algorithm?.testCases || []),
-    startCode: safeString(algorithm?.startCode || "")
+    title: algorithm?.name || "Algorithm",
+    description: algorithm?.description || "",
+    testCases: algorithm?.testCases || [],
+    startCode: algorithm?.startCode || ""
   });
 
   const algorithmSlug = algorithm?.slug || 'unknown';
 
-  // 🔥 SCROLL TO BOTTOM ON MESSAGES CHANGE
+  // SCROLL
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 🔥 SCROLL DETECTION FOR BUTTON
   useEffect(() => {
     const container = chatContainerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px threshold
-      setShowScrollToBottom(!isAtBottom);
+      setShowScrollToBottom(!(scrollTop + clientHeight >= scrollHeight - 5));
     };
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 🔥 SCROLL TO BOTTOM FUNCTION
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  // Handle the chat refresh
+  // 🔥 LOAD HISTORY (AXIOS FIX)
   useEffect(() => {
-    if (activeChatId) {
-      localStorage.setItem("activeChatId", activeChatId);
-    }
-  }, [activeChatId]);
-  
-  useEffect(() => {
-    const savedId = localStorage.getItem("activeChatId");
-    if (savedId) {
-      setActiveChatId(savedId);
-    }
-  }, []);
-
-  const buildChatTitle = (text) => {
-    if (!text || !text.trim()) return `New ${algorithm?.name || 'AI'} chat`;
-    const cleaned = text.replace(/\s+/g, ' ').trim();
-    if (cleaned.length <= 55) return cleaned;
-    return `${cleaned.slice(0, 55).trim()}...`;
-  };
-
-  const getHistoryChatTitle = (chat) => {
-    const rawTitle = chat?.chatTitle?.trim();
-    const isPlaceholderTitle =
-      !rawTitle ||
-      /^new chat$/i.test(rawTitle) ||
-      /^new .* chat$/i.test(rawTitle);
-    if (!isPlaceholderTitle) return rawTitle;
-    const firstUserMessage = chat?.messages?.[0]?.user || '';
-    return buildChatTitle(firstUserMessage);
-  };
-
-  // Save on page refresh/close
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (messages.length > 0 && !isLoadedFromHistory) {
-        const sessionMessages = buildSessionMessages();
-        if (sessionMessages.length > 0) {
-         const payload = {
-           name: userName || null,
-           email: userEmail || null,
-           isPremium: !!isPremium,
-           algorithmSlug,
-           algorithmName: algorithm?.name,
-           chatTitle: getCurrentChatTitle(),
-           messages: sessionMessages
-         };
-         
-         navigator.sendBeacon(
-           `${API_BASE_URL}/ai/save-session`,
-           new Blob([JSON.stringify({
-             chatId: activeChatId,
-             name: userName || null,
-             email: userEmail || null,
-             isPremium: !!isPremium,
-             algorithmSlug,
-             algorithmName: algorithm?.name,
-             chatTitle: getCurrentChatTitle(),
-             messages: buildSessionMessages()
-           })], { type: "application/json" })
-         );
-        }
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [messages, algorithmSlug, algorithm?.name, userEmail, userName, isPremium, isLoadedFromHistory]);
-
-  // Load history on mount
-  useEffect(() => {
-    let cancelled = false;
-
     const fetchHistory = async () => {
       try {
-        const url = userEmail
-         ? `${API_BASE_URL}/ai/history?email=${encodeURIComponent(userEmail)}`
-         : `${API_BASE_URL}/ai/history`;
+        const data = await axiosClient.get(
+          userEmail
+            ? `/ai/history?email=${encodeURIComponent(userEmail)}`
+            : `/ai/history`
+        );
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        if (!cancelled && data.success) {
-         setHistory(data.chats || []);
+        if (data.success) {
+          setHistory(data.chats || []);
         }
       } catch (err) {
         console.error('Failed to load chat history:', err);
       } finally {
-        if (!cancelled) setHistoryLoading(false);
+        setHistoryLoading(false);
       }
     };
 
     fetchHistory();
-    return () => {
-      cancelled = true;
-    };
   }, [userEmail]);
-
-  // Open and closing menu
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setOpenMenuId(null);
-    };
-
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, []);
 
   const buildSessionMessages = () => {
     const result = [];
     messages.forEach((m, idx) => {
-      if (m.role === 'user' && m.content) {
-        const botMsg = messages
-         .slice(idx + 1)
-         .find((msg) => msg.role === 'model');
-
-        if (botMsg && botMsg.content) {
-         result.push({
-           user: m.content,
-           bot: botMsg.content
-         });
+      if (m.role === 'user') {
+        const botMsg = messages.slice(idx + 1).find(msg => msg.role === 'model');
+        if (botMsg) {
+          result.push({ user: m.content, bot: botMsg.content });
         }
       }
     });
@@ -202,58 +103,52 @@ export default function ChatWithAI({
   };
 
   const getCurrentChatTitle = () => {
-    const firstUserMessage = messages.find((m) => m.role === 'user')?.content || '';
-    return buildChatTitle(firstUserMessage);
+    const first = messages.find(m => m.role === 'user')?.content || '';
+    return first.slice(0, 55);
   };
 
+  // 🔥 SAVE CHAT (AXIOS FIX)
   const saveCurrentChat = async () => {
-    if (messages.length === 0) return;
-  
+    if (!messages.length) return;
+
     const sessionMessages = buildSessionMessages();
-    if (sessionMessages.length === 0) return;
-  
+    if (!sessionMessages.length) return;
+
     try {
-      const payload = {
+      const data = await axiosClient.post('/ai/save-session', {
         chatId: activeChatId,
-        name: userName || null,
-        email: userEmail || null,
-        isPremium: !!isPremium,
+        name: userName,
+        email: userEmail,
+        isPremium,
         algorithmSlug,
         algorithmName: algorithm?.name,
         chatTitle: getCurrentChatTitle(),
         messages: sessionMessages
-      };
-  
-      const response = await fetch(`${API_BASE_URL}/ai/save-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
       });
-  
-      const data = await response.json();
-  
+
       if (!activeChatId && data.chatId) {
         setActiveChatId(data.chatId);
       }
-  
+
     } catch (err) {
       console.error(err);
     }
   };
-    
-  const refreshHistory = async () => {
-    try {
-      const url = userEmail
-        ? `${API_BASE_URL}/ai/history?email=${encodeURIComponent(userEmail)}`
-        : `${API_BASE_URL}/ai/history`;
 
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.success) {
-        setHistory(data.chats || []);
+  // 🔥 DELETE CHAT (AXIOS FIX)
+  const handleDeleteChat = async (chatId) => {
+    try {
+      await axiosClient.delete(`/ai/delete-chat/${chatId}`);
+
+      setHistory(prev => prev.filter(chat => chat._id !== chatId));
+
+      if (activeChatId === chatId) {
+        clearChat();
+        setActiveChatId(null);
       }
+
     } catch (err) {
-      console.error('Failed to refresh history:', err);
+      console.error(err);
     }
   };
 
@@ -265,108 +160,40 @@ export default function ChatWithAI({
     try {
       await sendMessage(input);
       setInput('');
-    } catch (err) {
-      console.error('Error sending message:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleNewChat = async () => {
-    if (messages.length > 0) {
-      await saveCurrentChat();
-    }
-  
+    if (messages.length > 0) await saveCurrentChat();
+
     clearChat();
     setActiveChatId(null);
     setIsLoadedFromHistory(false);
     scrollToBottom();
   };
 
-  // 🔥 IMPROVED: Load chat + auto-scroll to bottom
   const handleSelectChat = (chatId) => {
     const chatData = history.find(c => c._id === chatId);
     if (!chatData) return;
 
-    if (chatData.algorithmSlug !== algorithmSlug) {
-      alert('Switch algorithm first');
-      return;
-    }
-
     const loadedMessages = [];
-    chatData.messages.forEach((msg) => {
-      loadedMessages.push({
-        role: 'user',
-        content: msg.user,
-        parts: [{ text: msg.user }]
-      });
-      loadedMessages.push({
-        role: 'model',
-        content: msg.bot,
-        parts: [{ text: msg.bot }]
-      });
+    chatData.messages.forEach(msg => {
+      loadedMessages.push({ role: 'user', content: msg.user });
+      loadedMessages.push({ role: 'model', content: msg.bot });
     });
 
     setMessages(loadedMessages);
-    setActiveChatId(chatData._id);
+    setActiveChatId(chatId);
     setIsLoadedFromHistory(true);
-    setOpenMenuId(null);
-    
-    // 🔥 AUTO-SCROLL TO BOTTOM AFTER LOADING
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
+
+    setTimeout(scrollToBottom, 100);
   };
-
-  const handleDeleteChat = async (chatId) => {
-    try {
-      await fetch(`${API_BASE_URL}/ai/delete-chat/${chatId}`, {
-        method: 'DELETE'
-      });
-
-      setHistory(prev => prev.filter(chat => chat._id !== chatId));
-
-      if (activeChatId === chatId) {
-        clearChat();
-        setActiveChatId(null);
-        setIsLoadedFromHistory(false);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-  };
-
-  const groupedHistory = history.reduce((acc, chat) => {
-    const algorithmName = chat.algorithmName || 'Unknown';
-    if (!acc[algorithmName]) {
-      acc[algorithmName] = [];
-    }
-    acc[algorithmName].push(chat);
-    return acc;
-  }, {});
-
-  const isViewingHistory = false;
-
-  if (!algorithm) {
-    return (
-      <div className="h-full flex items-center justify-center text-text-secondary">
-        <div className="flex items-center gap-2">
-          <AlertCircle size={20} />
-          <span>Algorithm data not available</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
+    // <div className="flex h-full overflow-hidden">
+    //   return (
     <div className="flex h-full bg-gradient-to-b from-card to-card/50 overflow-hidden scrollbar-hide">
       {/* SIDEBAR - unchanged */}
       <div
@@ -601,7 +428,615 @@ export default function ChatWithAI({
       </div>
     </div>
   );
+  //   </div>
+  // );
 }
+
+
+// import { useState, useRef, useEffect, useCallback } from 'react';
+// import { Send, Loader, AlertCircle, Brain , Bot , Plus, MessageCircle, ArrowLeft,PanelLeft, MoreHorizontal, ArrowDown } from 'lucide-react';
+// import MessageBubble from './MessageBubble';
+// import { useStreamChat } from './useStreamChat';
+// import DeleteChatModal from "./DeleteChat"
+// import { axiosClient, getApiBaseUrl } from '../../utils/axios';
+
+// const API_BASE_URL = getApiBaseUrl();
+
+// export default function ChatWithAI({
+//   algorithm,
+//   userEmail = null,
+//   userName = null,
+//   isPremium = false
+// }) {
+//   const messagesEndRef = useRef(null);
+//   const chatContainerRef = useRef(null);
+//   const [input, setInput] = useState('');
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [history, setHistory] = useState([]);
+//   const [historyLoading, setHistoryLoading] = useState(true);
+//   const [sidebarOpen, setSidebarOpen] = useState(true);
+//   const [isLoadedFromHistory, setIsLoadedFromHistory] = useState(false);
+//   const [activeChatId, setActiveChatId] = useState(null);
+//   const [openMenuId, setOpenMenuId] = useState(null);
+//   const [deleteChat, setDeleteChat] = useState(null);
+//   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+
+//   const safeString = (val) => {
+//     if (!val) return "";
+//     if (typeof val === "string") return val;
+//     return JSON.stringify(val, null, 2);
+//   };
+
+//   const {
+//     messages,
+//     setMessages,
+//     error,
+//     sendMessage,
+//     clearChat,
+//     isStreaming,
+//     isLoading: isLoadingHistoryLocal
+//   } = useStreamChat({
+//     title: safeString(algorithm?.name || "Algorithm"),
+//     description: safeString(algorithm?.description || ""),
+//     testCases: safeString(algorithm?.testCases || []),
+//     startCode: safeString(algorithm?.startCode || "")
+//   });
+
+//   const algorithmSlug = algorithm?.slug || 'unknown';
+
+//   // 🔥 SCROLL TO BOTTOM ON MESSAGES CHANGE
+//   useEffect(() => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, [messages]);
+
+//   // 🔥 SCROLL DETECTION FOR BUTTON
+//   useEffect(() => {
+//     const container = chatContainerRef.current;
+//     if (!container) return;
+
+//     const handleScroll = () => {
+//       const { scrollTop, scrollHeight, clientHeight } = container;
+//       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5; // 5px threshold
+//       setShowScrollToBottom(!isAtBottom);
+//     };
+
+//     container.addEventListener('scroll', handleScroll);
+//     return () => container.removeEventListener('scroll', handleScroll);
+//   }, []);
+
+//   // 🔥 SCROLL TO BOTTOM FUNCTION
+//   const scrollToBottom = useCallback(() => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, []);
+
+//   // Handle the chat refresh
+//   useEffect(() => {
+//     if (activeChatId) {
+//       localStorage.setItem("activeChatId", activeChatId);
+//     }
+//   }, [activeChatId]);
+  
+//   useEffect(() => {
+//     const savedId = localStorage.getItem("activeChatId");
+//     if (savedId) {
+//       setActiveChatId(savedId);
+//     }
+//   }, []);
+
+//   const buildChatTitle = (text) => {
+//     if (!text || !text.trim()) return `New ${algorithm?.name || 'AI'} chat`;
+//     const cleaned = text.replace(/\s+/g, ' ').trim();
+//     if (cleaned.length <= 55) return cleaned;
+//     return `${cleaned.slice(0, 55).trim()}...`;
+//   };
+
+//   const getHistoryChatTitle = (chat) => {
+//     const rawTitle = chat?.chatTitle?.trim();
+//     const isPlaceholderTitle =
+//       !rawTitle ||
+//       /^new chat$/i.test(rawTitle) ||
+//       /^new .* chat$/i.test(rawTitle);
+//     if (!isPlaceholderTitle) return rawTitle;
+//     const firstUserMessage = chat?.messages?.[0]?.user || '';
+//     return buildChatTitle(firstUserMessage);
+//   };
+
+//   // Save on page refresh/close
+//   useEffect(() => {
+//     const handleBeforeUnload = () => {
+//       if (messages.length > 0 && !isLoadedFromHistory) {
+//         const sessionMessages = buildSessionMessages();
+//         if (sessionMessages.length > 0) {
+//          const payload = {
+//            name: userName || null,
+//            email: userEmail || null,
+//            isPremium: !!isPremium,
+//            algorithmSlug,
+//            algorithmName: algorithm?.name,
+//            chatTitle: getCurrentChatTitle(),
+//            messages: sessionMessages
+//          };
+         
+//          navigator.sendBeacon(
+//            `${API_BASE_URL}/ai/save-session`,
+//            new Blob([JSON.stringify({
+//              chatId: activeChatId,
+//              name: userName || null,
+//              email: userEmail || null,
+//              isPremium: !!isPremium,
+//              algorithmSlug,
+//              algorithmName: algorithm?.name,
+//              chatTitle: getCurrentChatTitle(),
+//              messages: buildSessionMessages()
+//            })], { type: "application/json" })
+//          );
+//         }
+//       }
+//     };
+
+//     window.addEventListener('beforeunload', handleBeforeUnload);
+//     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+//   }, [messages, algorithmSlug, algorithm?.name, userEmail, userName, isPremium, isLoadedFromHistory]);
+
+//   // Load history on mount
+//   useEffect(() => {
+//     let cancelled = false;
+
+//     const fetchHistory = async () => {
+//       try {
+//         const url = userEmail
+//          ? `${API_BASE_URL}/ai/history?email=${encodeURIComponent(userEmail)}`
+//          : `${API_BASE_URL}/ai/history`;
+
+//         const response = await apiFetch(url);
+//         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+//         const data = await response.json();
+//         if (!cancelled && data.success) {
+//          setHistory(data.chats || []);
+//         }
+//       } catch (err) {
+//         console.error('Failed to load chat history:', err);
+//       } finally {
+//         if (!cancelled) setHistoryLoading(false);
+//       }
+//     };
+
+//     fetchHistory();
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [userEmail]);
+
+//   // Open and closing menu
+//   useEffect(() => {
+//     const handleClickOutside = () => {
+//       setOpenMenuId(null);
+//     };
+
+//     window.addEventListener('click', handleClickOutside);
+//     return () => window.removeEventListener('click', handleClickOutside);
+//   }, []);
+
+//   const buildSessionMessages = () => {
+//     const result = [];
+//     messages.forEach((m, idx) => {
+//       if (m.role === 'user' && m.content) {
+//         const botMsg = messages
+//          .slice(idx + 1)
+//          .find((msg) => msg.role === 'model');
+
+//         if (botMsg && botMsg.content) {
+//          result.push({
+//            user: m.content,
+//            bot: botMsg.content
+//          });
+//         }
+//       }
+//     });
+//     return result;
+//   };
+
+//   const getCurrentChatTitle = () => {
+//     const firstUserMessage = messages.find((m) => m.role === 'user')?.content || '';
+//     return buildChatTitle(firstUserMessage);
+//   };
+
+//   const saveCurrentChat = async () => {
+//     if (messages.length === 0) return;
+  
+//     const sessionMessages = buildSessionMessages();
+//     if (sessionMessages.length === 0) return;
+  
+//     try {
+//       const payload = {
+//         chatId: activeChatId,
+//         name: userName || null,
+//         email: userEmail || null,
+//         isPremium: !!isPremium,
+//         algorithmSlug,
+//         algorithmName: algorithm?.name,
+//         chatTitle: getCurrentChatTitle(),
+//         messages: sessionMessages
+//       };
+  
+//       const response = await apiFetch(`/ai/save-session`, {
+//         method: 'POST',
+//         body: JSON.stringify(payload)
+//       });
+  
+//       const data = await response.json();
+  
+//       if (!activeChatId && data.chatId) {
+//         setActiveChatId(data.chatId);
+//       }
+  
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+    
+//   const refreshHistory = async () => {
+//     try {
+//       const url = userEmail
+//         ? `${API_BASE_URL}/ai/history?email=${encodeURIComponent(userEmail)}`
+//         : `${API_BASE_URL}/ai/history`;
+
+//       const response = await apiFetch(url);
+//       const data = await response.json();
+//       if (data.success) {
+//         setHistory(data.chats || []);
+//       }
+//     } catch (err) {
+//       console.error('Failed to refresh history:', err);
+//     }
+//   };
+
+//   const handleSend = async (e) => {
+//     e.preventDefault();
+//     if (!input.trim()) return;
+
+//     setIsLoading(true);
+//     try {
+//       await sendMessage(input);
+//       setInput('');
+//     } catch (err) {
+//       console.error('Error sending message:', err);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const handleNewChat = async () => {
+//     if (messages.length > 0) {
+//       await saveCurrentChat();
+//     }
+  
+//     clearChat();
+//     setActiveChatId(null);
+//     setIsLoadedFromHistory(false);
+//     scrollToBottom();
+//   };
+
+//   // 🔥 IMPROVED: Load chat + auto-scroll to bottom
+//   const handleSelectChat = (chatId) => {
+//     const chatData = history.find(c => c._id === chatId);
+//     if (!chatData) return;
+
+//     if (chatData.algorithmSlug !== algorithmSlug) {
+//       alert('Switch algorithm first');
+//       return;
+//     }
+
+//     const loadedMessages = [];
+//     chatData.messages.forEach((msg) => {
+//       loadedMessages.push({
+//         role: 'user',
+//         content: msg.user,
+//         parts: [{ text: msg.user }]
+//       });
+//       loadedMessages.push({
+//         role: 'model',
+//         content: msg.bot,
+//         parts: [{ text: msg.bot }]
+//       });
+//     });
+
+//     setMessages(loadedMessages);
+//     setActiveChatId(chatData._id);
+//     setIsLoadedFromHistory(true);
+//     setOpenMenuId(null);
+    
+//     // 🔥 AUTO-SCROLL TO BOTTOM AFTER LOADING
+//     setTimeout(() => {
+//       scrollToBottom();
+//     }, 100);
+//   };
+
+//   const handleDeleteChat = async (chatId) => {
+//     try {
+//       await apiFetch(`/ai/delete-chat/${chatId}`, {
+//         method: 'DELETE'
+//       });
+
+//       setHistory(prev => prev.filter(chat => chat._id !== chatId));
+
+//       if (activeChatId === chatId) {
+//         clearChat();
+//         setActiveChatId(null);
+//         setIsLoadedFromHistory(false);
+//       }
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+  
+//   const formatDate = (dateString) => {
+//     const date = new Date(dateString);
+//     return date.toLocaleTimeString('en-IN', {
+//         hour: '2-digit',
+//         minute: '2-digit'
+//     });
+//   };
+
+//   const groupedHistory = history.reduce((acc, chat) => {
+//     const algorithmName = chat.algorithmName || 'Unknown';
+//     if (!acc[algorithmName]) {
+//       acc[algorithmName] = [];
+//     }
+//     acc[algorithmName].push(chat);
+//     return acc;
+//   }, {});
+
+//   const isViewingHistory = false;
+
+//   if (!algorithm) {
+//     return (
+//       <div className="h-full flex items-center justify-center text-text-secondary">
+//         <div className="flex items-center gap-2">
+//           <AlertCircle size={20} />
+//           <span>Algorithm data not available</span>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex h-full bg-gradient-to-b from-card to-card/50 overflow-hidden scrollbar-hide">
+//       {/* SIDEBAR - unchanged */}
+//       <div
+//         className={`flex-shrink-0 border-r border-border/50 bg-background/80 backdrop-blur-sm flex flex-col transition-all duration-300 scrollbar-hide ${
+//           sidebarOpen ? 'w-72' : 'w-0'
+//         } overflow-hidden`}
+//       >
+//         {/* ... sidebar content unchanged ... */}
+//         <div className="flex-shrink-0 border-b border-border/30 bg-gradient-to-r from-background/50 to-card/50 px-4.75 py-3 flex items-center justify-between scrollbar-hide">
+//           <div>
+//             <h3 className="font-bold text-text-primary text-sm">Chat History</h3>
+//             <p className="text-xs text-text-secondary mt-0.5">
+//               {historyLoading ? 'Loading...' : `${history.length} chats`}
+//             </p>
+//           </div>
+//          <button
+//            onClick={() => setSidebarOpen(false)}
+//            className="text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+//          >
+//            <PanelLeft size={18}  />
+//          </button>
+//         </div>
+
+//         <button
+//          onClick={handleNewChat}
+//          className="m-3 flex items-center gap-2 px-4 py-2.5 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors border border-accent/30 hover:border-accent/50 font-medium text-sm"
+//         >
+//           <Plus size={16} />
+//           New Chat
+//         </button>
+
+//         <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-border/50 scrollbar-track-transparent">
+//           {historyLoading ? (
+//             <div className="flex items-center justify-center h-20 text-text-secondary">
+//               <Loader size={18} className="animate-spin" />
+//             </div>
+//           ) : history.length === 0 ? (
+//             <div className="p-4 text-center text-text-secondary text-xs">
+//               <Bot size={32} className="mx-auto mb-2 opacity-20" />
+//               <p>No chat history yet</p>
+//               <p className="mt-1 text-[11px]">Start chatting to begin</p>
+//             </div>
+//           ) : (
+//             <div className="p-2 space-y-4">
+//               {Object.entries(groupedHistory).map(([algorithmName, chats]) => (
+//                 <div key={algorithmName}>
+//                   <div className="px-3 py-2 text-xs font-semibold text-text-secondary/70 uppercase tracking-wider">
+//                     {algorithmName}
+//                   </div>
+//                   <div className="space-y-1">
+//                     {chats.map((chat) => (
+//                       <div
+//                         key={chat._id}
+//                         className={`relative group flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${
+//                           activeChatId === chat._id
+//                             ? 'bg-accent/30 border border-accent/50 ring-2 ring-accent/30'
+//                             : 'hover:bg-background/80 border border-transparent'
+//                         }`}
+//                       >
+//                         <button
+//                           onClick={() => handleSelectChat(chat._id)}
+//                           className="flex items-start gap-2 flex-grow text-left w-full"
+//                         >
+//                           <MessageCircle size={14} className={`mt-0.5 flex-shrink-0 transition-colors ${activeChatId === chat._id ? 'text-accent' : 'text-accent'}`} />
+//                           <div className="flex-grow min-w-0">
+//                             <p className={`text-xs font-medium truncate transition-colors ${activeChatId === chat._id ? 'text-accent' : 'text-text-primary group-hover:text-accent'}`}>
+//                               {getHistoryChatTitle(chat)}
+//                             </p>
+//                             <p className="text-[11px] text-text-secondary/70 mt-0.5 truncate">
+//                               {chat.messages.length} message{chat.messages.length !== 1 ? 's' : ''}
+//                             </p>
+//                             <p className="text-[10px] text-text-secondary/60 mt-1">
+//                               {formatDate(chat.createdAt)}
+//                             </p>
+//                           </div>
+//                         </button>
+
+//                         <button
+//                           onClick={(e) => {
+//                             e.stopPropagation();
+//                             setOpenMenuId(openMenuId === chat._id ? null : chat._id);
+//                           }}
+//                           className="opacity-0 group-hover:opacity-100 text-text-secondary hover:text-text-primary transition ml-2 cursor-pointer"
+//                         >
+//                           <MoreHorizontal size={20} strokeWidth={2.5} />
+//                         </button>
+
+//                         {openMenuId === chat._id && (
+//                           <div className="absolute right-2 top-10 w-32 bg-card border border-border rounded-lg shadow-lg z-50 p-1">
+//                             <button
+//                               onClick={() => {
+//                                 handleSelectChat(chat._id);
+//                                 setOpenMenuId(null);
+//                               }}
+//                               className="w-full text-left px-3 py-2 text-sm hover:bg-background rounded-lg cursor-pointer"
+//                             >
+//                               Continue
+//                             </button>
+//                             <button
+//                               onClick={() => {
+//                                 setDeleteChat(chat);
+//                                 setOpenMenuId(null);
+//                               }}
+//                               className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-background rounded-lg cursor-pointer"
+//                             >
+//                               Delete
+//                             </button>
+//                           </div>
+//                         )}
+//                       </div>
+//                     ))}
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <DeleteChatModal
+//         chat={deleteChat}
+//         onClose={() => setDeleteChat(null)}
+//         onDelete={(chatId) => {
+//           handleDeleteChat(chatId);
+//         }}
+//         getTitle={getHistoryChatTitle}
+//       />
+
+//       {/* MAIN CHAT */}
+//       <div className="flex-grow flex flex-col overflow-hidden">
+//         <div className="flex-shrink-0 border-b border-border/50 bg-gradient-to-r from-background/50 to-card/50 px-4 py-2.25 flex items-center justify-between">
+//           <div className="flex items-center gap-3">
+//             {!sidebarOpen && (
+//               <button
+//                 onClick={() => setSidebarOpen(prev => !prev)}
+//                 className="p-2 rounded-md hover:bg-background transition cursor-pointer"
+//               >
+//                 <PanelLeft size={18} />
+//               </button>
+//             )}
+//             <div>
+//               <h3 className="font-bold text-text-primary flex items-center gap-2">
+//                 <Bot size={18} className="text-accent" />
+//                 Chat with AI Tutor
+//               </h3>
+//               <p className="text-xs text-text-secondary mt-1">
+//                 {activeChatId 
+//                   ? `${algorithm?.name} • ${messages.length} messages`
+//                   : `Current session • ${algorithm?.name}`
+//                 }
+//               </p>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* 🔥 CHAT CONTAINER WITH REF + SCROLL BUTTON */}
+//         <div ref={chatContainerRef} className="chat-scroll-area flex-grow overflow-y-auto flex flex-col gap-3 p-4 relative">
+//           {isLoadingHistoryLocal ? (
+//             <div className="flex-grow flex items-center justify-center text-text-secondary">
+//               <div className="flex items-center gap-2">
+//                 <Loader size={20} className="animate-spin" />
+//                 <span className="text-sm">Loading...</span>
+//               </div>
+//             </div>
+//           ) : messages.length === 0 ? (
+//             <div className="flex-grow flex flex-col items-center justify-center text-center text-text-secondary px-4">
+//               <Bot size={40} className="mb-3 opacity-30" />
+//               <p className="text-sm font-medium">Start your learning journey!</p>
+//               <p className="text-xs mt-1 opacity-70">
+//                 Ask about {algorithm?.name}, get hints, discuss solutions
+//               </p>
+//             </div>
+//           ) : (
+//             <>
+//               {messages.map((msg, idx) => (
+//                 <MessageBubble
+//                   key={idx}
+//                   role={msg.role}
+//                   content={msg.content}
+//                   isStreaming={isStreaming && idx === messages.length - 1}
+//                 />
+//               ))}
+//               <div ref={messagesEndRef} />
+//             </>
+//           )}
+
+//           {/* 🔥 SCROLL TO BOTTOM BUTTON */}
+//           {showScrollToBottom && (
+//             <button
+//               onClick={scrollToBottom}
+//               className="fixed bottom-24 left-[60%] w-8 h-8 bg-accent text-white rounded-full shadow-lg hover:shadow-xl hover:bg-accent/90 transition-all duration-200 flex items-center justify-center z-40 hover:scale-102 active:scale-95 cursor-pointer"
+//               aria-label="Scroll to bottom"
+//             >
+//               <ArrowDown size={20} />
+//             </button>
+//           )}
+//         </div>
+
+//         {error && (
+//           <div className="flex-shrink-0 mx-4 mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex gap-2">
+//             <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+//             <p className="text-xs text-red-300">{error}</p>
+//           </div>
+//         )}
+
+//         <form
+//           onSubmit={handleSend}
+//           className="flex-shrink-0 border-t border-border/50 bg-gradient-to-r from-background/50 to-card/50 p-3"
+//         >
+//           <div className="flex gap-2">
+//             <input
+//               type="text"
+//               value={input}
+//               onChange={(e) => setInput(e.target.value)}
+//               placeholder="Ask a question..."
+//               disabled={isStreaming || isLoading || isLoadingHistoryLocal}
+//               className="flex-grow px-3 py-2 bg-background border border-border/50 rounded-lg text-text-primary text-sm placeholder-text-secondary/50 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 disabled:opacity-50 transition-all"
+//             />
+//             <button
+//               type="submit"
+//               disabled={isStreaming || isLoading || !input.trim() || isLoadingHistoryLocal}
+//               className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 flex-shrink-0"
+//             >
+//               {isStreaming || isLoading ? (
+//                 <Loader size={16} className="animate-spin" />
+//               ) : (
+//                 <Send size={16} />
+//               )}
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// }
 
 
 

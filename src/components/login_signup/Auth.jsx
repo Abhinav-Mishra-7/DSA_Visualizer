@@ -1,21 +1,56 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User } from "lucide-react";
 import AuthForm from "./AuthForm";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import { clearAuthState } from "../../slices/authSlice";
+import axiosClient from "../../utils/axios";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // 🔥 HANDLE SUCCESS (UPDATED)
+  const handleAuthSuccess = useMemo(() => {
+    return (data) => {
+      const user = data?.user || null;
+
+      dispatch(clearAuthState({ token: null, user }));
+      navigate("/", { replace: true });
+    };
+  }, [dispatch, navigate]);
+
+
+
+  // 🔥 AUTO LOGIN ON REFRESH (IMPORTANT)
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const data = await axiosClient.get("/auth/me");
+
+        if (data?.user) {
+          dispatch(setAuth({ token: null, user: data.user }));
+          navigate("/", { replace: true });
+        }
+      } catch (err) {
+        // not logged in → ignore
+      }
+    };
+
+    checkAuth();
+  }, [dispatch, navigate]);
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 px-4">
 
-      {/* MAIN CARD */}
       <div className="w-full max-w-5xl h-[600px] bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl flex overflow-hidden">
 
-        {/* LEFT SIDE (3D STYLE VISUAL) */}
+        {/* LEFT SIDE */}
         <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-blue-500 to-blue-700 items-center justify-center">
 
-          {/* FLOATING 3D EFFECT */}
           <div className="absolute w-72 h-72 bg-white/10 rounded-full blur-3xl top-10 left-10 animate-pulse"></div>
           <div className="absolute w-56 h-56 bg-white/20 rounded-full blur-2xl bottom-10 right-10 animate-pulse"></div>
 
@@ -37,9 +72,8 @@ export default function AuthPage() {
           </motion.div>
         </div>
 
-        {/* RIGHT SIDE FORM */}
+        {/* RIGHT SIDE */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-
           <div className="w-full max-w-sm">
 
             {/* TOGGLE */}
@@ -52,6 +86,7 @@ export default function AuthPage() {
               >
                 Login
               </button>
+
               <button
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 py-2 text-sm rounded-lg transition ${
@@ -62,7 +97,7 @@ export default function AuthPage() {
               </button>
             </div>
 
-            {/* FORM ANIMATION */}
+            {/* FORM */}
             <AnimatePresence mode="wait">
               {isLogin ? (
                 <motion.div
@@ -72,7 +107,7 @@ export default function AuthPage() {
                   exit={{ opacity: 0, x: 40 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <AuthForm type="login" />
+                  <AuthForm type="login" onAuthSuccess={handleAuthSuccess} />
                 </motion.div>
               ) : (
                 <motion.div
@@ -82,10 +117,11 @@ export default function AuthPage() {
                   exit={{ opacity: 0, x: -40 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <AuthForm type="signup" />
+                  <AuthForm type="signup" onAuthSuccess={handleAuthSuccess} />
                 </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </div>
       </div>

@@ -108,6 +108,34 @@ html.dark {
   --shadow-color-glass: var(--glass-shadow);
 }
 
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Hide the default password reveal button in Edge and Chrome */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* For some versions of Chrome/Safari if they appear */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

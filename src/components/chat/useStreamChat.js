@@ -1,7 +1,5 @@
-// frontend/src/components/chat/useStreamChat.js
 import { useState, useCallback, useEffect } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 const STORAGE_KEY_PREFIX = 'chat_history_';
 
 export function useStreamChat({ title, description, testCases, startCode }) {
@@ -10,30 +8,24 @@ export function useStreamChat({ title, description, testCases, startCode }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Use algorithm title as key. Empty title fallback so key is stable.
   const storageKey = `${STORAGE_KEY_PREFIX}${title || 'unknown_algorithm'}`;
 
-  // 1) Load messages from localStorage ONLY once on mount
+  // LOAD FROM LOCAL STORAGE
   useEffect(() => {
     try {
-      const savedMessages = localStorage.getItem(storageKey);
-      if (savedMessages) {
-        const parsed = JSON.parse(savedMessages);
-        if (Array.isArray(parsed)) {
-          setMessages(parsed);
-        }
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setMessages(parsed);
       }
     } catch (err) {
-      console.error('Error loading chat history:', err);
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
-  // 2) Save messages to localStorage whenever they change
-  //    If messages becomes empty, also clear storage so that
-  //    a fresh open of the website starts with empty chat.
+  // SAVE TO LOCAL STORAGE
   useEffect(() => {
     if (isLoading) return;
 
@@ -44,22 +36,17 @@ export function useStreamChat({ title, description, testCases, startCode }) {
         localStorage.removeItem(storageKey);
       }
     } catch (err) {
-      console.error('Error saving chat history:', err);
+      console.error(err);
     }
   }, [messages, storageKey, isLoading]);
 
-  // 3) Clear chat API – used when user presses "Clear"
   const clearChat = useCallback(() => {
     setMessages([]);
     setError(null);
-    try {
-      localStorage.removeItem(storageKey);
-    } catch (err) {
-      console.error('Error clearing chat history:', err);
-    }
+    localStorage.removeItem(storageKey);
   }, [storageKey]);
 
-  // 4) Send message + streaming logic
+  // 🚀 STREAM MESSAGE (FETCH ONLY)
   const sendMessage = useCallback(
     async (userMessage) => {
       if (!userMessage.trim()) return;
@@ -67,125 +54,90 @@ export function useStreamChat({ title, description, testCases, startCode }) {
       setError(null);
       setIsStreaming(true);
 
-      // append user message
       const updatedMessages = [
         ...messages,
-        { role: 'user', content: userMessage, parts: [{ text: userMessage }] }
+        { role: 'user', content: userMessage }
       ];
+
       setMessages(updatedMessages);
 
       try {
-        // format for Gemini
-        const formattedMessages = updatedMessages.map((msg) => {
-          if (msg.parts && Array.isArray(msg.parts)) {
-            return {
-              role: msg.role === 'model' ? 'model' : 'user',
-              parts: msg.parts
-            };
-          }
-          return {
-            role: msg.role === 'model' ? 'model' : 'user',
-            parts: [{ text: msg.content || '' }]
-          };
-        });
-
         const payload = {
-          messages: formattedMessages,
-          message:userMessage,
+          messages: updatedMessages,
+          message: userMessage,
           algorithmName: title || 'Algorithm',
-          description: description || '',
-          testCases: testCases || [],
-          startCode: startCode || ''
+          description,
+          testCases,
+          startCode
         };
 
-        let aiResponse = '';
-
-        const streamEndpoints = ['/ai/chat-stream'];
-        let response = null;
-        let lastErrorText = '';
-        let lastStatus = 0;
-
-        for (const endpoint of streamEndpoints) {
-          const candidate = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/ai/chat-stream`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
             body: JSON.stringify(payload)
-          });
-
-          if (candidate.ok) {
-            response = candidate;
-            break;
           }
+        );
 
-          lastStatus = candidate.status;
-          lastErrorText = await candidate.text();
-          // if route not found, try next endpoint variant
-          if (candidate.status === 404) continue;
-
-          throw new Error(`HTTP error ${candidate.status}: ${lastErrorText}`);
-        }
-
-        if (!response) {
-          throw new Error(
-            `Chat stream endpoint not found. Tried /ai/chat-stream and /api/ai/chat-stream. Last status: ${lastStatus}.`
-          );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
+        let aiResponse = "";
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
 
           for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
+            if (!line.startsWith("data: ")) continue;
 
             try {
               const data = JSON.parse(line.slice(6));
 
-              // if (data.text === '[DONE]') {
-              //   setIsStreaming(false);
-              //   continue;
-              // }
               if (!data.text || data.text === "[DONE]") {
                 setIsStreaming(false);
                 continue;
               }
 
-              // aiResponse += data.text;
-              if (data.text && data.text !== "[DONE]") {
-                aiResponse += data.text;
-              }
+              aiResponse += data.text;
 
               setMessages((prev) => {
                 const newMessages = [...prev];
-                const lastMsg = newMessages[newMessages.length - 1];
+                const last = newMessages[newMessages.length - 1];
 
-                if (lastMsg?.role === 'model') {
-                  lastMsg.content = aiResponse;
+                if (last?.role === "model") {
+                  last.content = aiResponse;
                 } else {
                   newMessages.push({
-                    role: 'model',
-                    content: aiResponse,
-                    parts: [{ text: aiResponse }]
+                    role: "model",
+                    content: aiResponse
                   });
                 }
+
                 return newMessages;
               });
+
             } catch {
-              // ignore partial chunk parse errors
+              // ignore partial chunks
             }
           }
         }
 
         setIsStreaming(false);
+
       } catch (err) {
-        console.error('Stream chat error:', err);
-        setError(err.message || 'Failed to get response from AI. Please try again.');
+        console.error(err);
+        setError(err.message || "Streaming failed");
         setIsStreaming(false);
       }
     },
