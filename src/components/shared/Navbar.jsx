@@ -22,7 +22,7 @@ export default function Navbar({ className = '', style = {} }) {
   }, [dispatch]);
 
   const handleLoginClick = () => {
-    navigate('/'); // Or wherever your AuthLayout is
+    navigate('/auth'); // Or wherever your AuthLayout is
   };
 
   // 🔥 2. LOGOUT
@@ -35,7 +35,7 @@ export default function Navbar({ className = '', style = {} }) {
   const navLinks = [
     { href: '/blogs', label: 'Blogs' },
     { href: '/visualizers', label: 'Visualizers' }
-  ];
+  ]; 
 
   return (
     <div className={`fixed top-4 left-0 right-0 z-50 px-3.5 transition-all ${className}`} style={style}>
